@@ -1,0 +1,42 @@
+#pragma version 2
+intcblock 2 6 233725848 0 5 1
+global GroupSize
+intc_0 // 2
+>=
+global GroupSize
+intc_1 // 6
+<=
+&&
+bz label1
+gtxn 0 ApplicationID
+intc_2 // 233725848
+==
+bnz label2
+b label1
+label2:
+gtxn 0 TypeEnum
+intc_1 // 6
+==
+gtxn 0 OnCompletion
+intc_3 // 0
+==
+intc 4 // 5
+gtxn 0 OnCompletion
+==
+||
+&&
+gtxn 1 RekeyTo
+global ZeroAddress
+==
+&&
+gtxn 0 RekeyTo
+global ZeroAddress
+==
+&&
+bnz label3
+label1:
+intc_3 // 0
+return
+label3:
+intc 5 // 1
+return

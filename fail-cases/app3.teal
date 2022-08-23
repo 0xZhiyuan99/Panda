@@ -1,0 +1,507 @@
+#pragma version 2
+intcblock 0 5 4 2 1 3
+bytecblock 0x7061757365 0x7365742061646d696e 0x667265657a65 0x6d61782062616c616e6365 0x6c6f636b20756e74696c 0x7472616e736665722067726f7570 0x6d696e74 0x6275726e 0x7472616e73666572 0x62616c616e6365 0x706175736564 0x66726f7a656e 0x72756c65 0x72657365727665 0x636f6e74726163742061646d696e 0x736574 0x6c6f636b 0x7472616e736665722061646d696e 0x746f74616c20737570706c79
+txn ApplicationID
+intc_0 // 0
+==
+bnz label1
+txn OnCompletion
+intc_1 // 5
+==
+bnz label2
+txn OnCompletion
+intc_2 // 4
+==
+bnz label3
+txn OnCompletion
+intc_3 // 2
+==
+bnz label4
+txn OnCompletion
+intc 4 // 1
+==
+bnz label5
+txna ApplicationArgs 0
+bytec_0 // "pause"
+==
+bnz label6
+txna ApplicationArgs 0
+bytec_1 // "set admin"
+==
+bnz label7
+txna ApplicationArgs 0
+bytec_2 // "freeze"
+==
+bnz label8
+txna ApplicationArgs 0
+bytec_3 // "max balance"
+==
+bnz label9
+txna ApplicationArgs 0
+bytec 4 // "lock until"
+==
+bnz label10
+txna ApplicationArgs 0
+bytec 5 // "transfer group"
+==
+bnz label11
+txna ApplicationArgs 0
+bytec 6 // "mint"
+==
+bnz label12
+txna ApplicationArgs 0
+bytec 7 // "burn"
+==
+bnz label13
+txna ApplicationArgs 0
+bytec 8 // "transfer"
+==
+bnz label14
+err
+label14:
+txn NumAppArgs
+intc_3 // 2
+==
+txn NumAccounts
+intc 4 // 1
+==
+&&
+txna ApplicationArgs 1
+btoi
+intc_0 // 0
+bytec 9 // "balance"
+app_local_get
+<=
+&&
+bnz label15
+err
+label15:
+intc 4 // 1
+global CurrentApplicationID
+bytec_3 // "max balance"
+app_local_get_ex
+store 0
+store 1
+bytec 10 // "paused"
+app_global_get
+intc_0 // 0
+bytec 11 // "frozen"
+app_local_get
+||
+intc 4 // 1
+bytec 11 // "frozen"
+app_local_get
+||
+intc_0 // 0
+bytec 4 // "lock until"
+app_local_get
+global LatestTimestamp
+>=
+||
+intc 4 // 1
+bytec 4 // "lock until"
+app_local_get
+global LatestTimestamp
+>=
+||
+bytec 12 // "rule"
+intc_0 // 0
+bytec 5 // "transfer group"
+app_local_get
+itob
+concat
+intc 4 // 1
+bytec 5 // "transfer group"
+app_local_get
+itob
+concat
+app_global_get
+global LatestTimestamp
+>=
+||
+load 0
+load 1
+intc 4 // 1
+bytec 9 // "balance"
+app_local_get
+txna ApplicationArgs 1
+btoi
++
+<
+&&
+||
+bz label16
+intc_0 // 0
+return
+label16:
+intc_0 // 0
+bytec 9 // "balance"
+intc_0 // 0
+bytec 9 // "balance"
+app_local_get
+txna ApplicationArgs 1
+btoi
+-
+app_local_put
+intc 4 // 1
+bytec 9 // "balance"
+intc 4 // 1
+bytec 9 // "balance"
+app_local_get
+txna ApplicationArgs 1
+btoi
++
+app_local_put
+intc 4 // 1
+return
+label13:
+txn NumAppArgs
+intc_3 // 2
+==
+txn NumAccounts
+intc 4 // 1
+==
+&&
+txna ApplicationArgs 1
+btoi
+intc 4 // 1
+bytec 9 // "balance"
+app_local_get
+<=
+&&
+bnz label17
+err
+label17:
+bytec 13 // "reserve"
+bytec 13 // "reserve"
+app_global_get
+txna ApplicationArgs 1
+btoi
++
+app_global_put
+intc 4 // 1
+bytec 9 // "balance"
+intc 4 // 1
+bytec 9 // "balance"
+app_local_get
+txna ApplicationArgs 1
+btoi
+-
+app_local_put
+intc_0 // 0
+bytec 14 // "contract admin"
+app_local_get
+return
+label12:
+txn NumAppArgs
+intc_3 // 2
+==
+txn NumAccounts
+intc 4 // 1
+==
+&&
+txna ApplicationArgs 1
+btoi
+bytec 13 // "reserve"
+app_global_get
+<=
+&&
+bnz label18
+err
+label18:
+bytec 13 // "reserve"
+bytec 13 // "reserve"
+app_global_get
+txna ApplicationArgs 1
+btoi
+-
+app_global_put
+intc 4 // 1
+bytec 9 // "balance"
+intc 4 // 1
+bytec 9 // "balance"
+app_local_get
+txna ApplicationArgs 1
+btoi
++
+app_local_put
+intc_0 // 0
+bytec 14 // "contract admin"
+app_local_get
+return
+label11:
+txn NumAppArgs
+intc_3 // 2
+>
+bnz label19
+err
+label19:
+txna ApplicationArgs 1
+bytec 15 // "set"
+==
+bnz label20
+txna ApplicationArgs 1
+bytec 16 // "lock"
+==
+bnz label21
+err
+label21:
+txn NumAppArgs
+intc_1 // 5
+==
+bnz label22
+err
+label22:
+txna ApplicationArgs 4
+btoi
+intc_0 // 0
+==
+bnz label23
+bytec 12 // "rule"
+txna ApplicationArgs 2
+btoi
+itob
+concat
+txna ApplicationArgs 3
+btoi
+itob
+concat
+txna ApplicationArgs 4
+btoi
+app_global_put
+b label24
+label23:
+bytec 12 // "rule"
+txna ApplicationArgs 2
+btoi
+itob
+concat
+txna ApplicationArgs 3
+btoi
+itob
+concat
+app_global_del
+label24:
+b label25
+label20:
+txn NumAppArgs
+intc 5 // 3
+==
+txn NumAccounts
+intc 4 // 1
+==
+&&
+bnz label26
+err
+label26:
+intc 4 // 1
+bytec 5 // "transfer group"
+txna ApplicationArgs 2
+btoi
+app_local_put
+label25:
+intc_0 // 0
+bytec 17 // "transfer admin"
+app_local_get
+return
+label10:
+txn NumAppArgs
+intc_3 // 2
+==
+txn NumAccounts
+intc 4 // 1
+==
+&&
+bnz label27
+err
+label27:
+txna ApplicationArgs 1
+btoi
+intc_0 // 0
+==
+bnz label28
+intc 4 // 1
+bytec 4 // "lock until"
+txna ApplicationArgs 1
+btoi
+app_local_put
+b label29
+label28:
+intc 4 // 1
+bytec 4 // "lock until"
+app_local_del
+label29:
+intc_0 // 0
+bytec 17 // "transfer admin"
+app_local_get
+return
+label9:
+txn NumAppArgs
+intc_3 // 2
+==
+txn NumAccounts
+intc 4 // 1
+==
+&&
+bnz label30
+err
+label30:
+txna ApplicationArgs 1
+btoi
+intc_0 // 0
+==
+bnz label31
+intc 4 // 1
+bytec_3 // "max balance"
+txna ApplicationArgs 1
+btoi
+app_local_put
+b label32
+label31:
+intc 4 // 1
+bytec_3 // "max balance"
+app_local_del
+label32:
+intc_0 // 0
+bytec 17 // "transfer admin"
+app_local_get
+return
+label8:
+txn NumAppArgs
+intc_3 // 2
+==
+txn NumAccounts
+intc 4 // 1
+==
+&&
+bnz label33
+err
+label33:
+intc 4 // 1
+bytec 11 // "frozen"
+txna ApplicationArgs 1
+btoi
+app_local_put
+intc_0 // 0
+bytec 14 // "contract admin"
+app_local_get
+intc_0 // 0
+bytec 17 // "transfer admin"
+app_local_get
+||
+return
+label7:
+intc_0 // 0
+bytec 14 // "contract admin"
+app_local_get
+txn NumAppArgs
+intc 5 // 3
+==
+&&
+txna ApplicationArgs 1
+bytec 14 // "contract admin"
+==
+txna ApplicationArgs 1
+bytec 17 // "transfer admin"
+==
+||
+&&
+txn NumAccounts
+intc 4 // 1
+==
+&&
+bnz label34
+err
+label34:
+intc 4 // 1
+txna ApplicationArgs 1
+txna ApplicationArgs 2
+btoi
+app_local_put
+intc 4 // 1
+return
+label6:
+txn NumAppArgs
+intc_3 // 2
+==
+bnz label35
+err
+label35:
+bytec 10 // "paused"
+txna ApplicationArgs 1
+btoi
+app_global_put
+intc_0 // 0
+bytec 14 // "contract admin"
+app_local_get
+intc_0 // 0
+bytec 17 // "transfer admin"
+app_local_get
+||
+return
+label5:
+intc_0 // 0
+bytec 9 // "balance"
+intc_0 // 0
+app_local_put
+intc 4 // 1
+return
+label4:
+bytec 13 // "reserve"
+bytec 13 // "reserve"
+app_global_get
+intc_0 // 0
+bytec 9 // "balance"
+app_local_get
++
+app_global_put
+intc 4 // 1
+return
+label3:
+intc_0 // 0
+bytec 14 // "contract admin"
+app_local_get
+return
+label2:
+intc_0 // 0
+bytec 14 // "contract admin"
+app_local_get
+bytec 18 // "total supply"
+app_global_get
+bytec 13 // "reserve"
+app_global_get
+==
+&&
+return
+label1:
+txn NumAppArgs
+intc 4 // 1
+==
+bnz label36
+err
+label36:
+bytec 18 // "total supply"
+txna ApplicationArgs 0
+btoi
+app_global_put
+bytec 13 // "reserve"
+txna ApplicationArgs 0
+btoi
+app_global_put
+bytec 10 // "paused"
+intc_0 // 0
+app_global_put
+intc_0 // 0
+bytec 14 // "contract admin"
+intc 4 // 1
+app_local_put
+intc_0 // 0
+bytec 17 // "transfer admin"
+intc 4 // 1
+app_local_put
+intc_0 // 0
+bytec 9 // "balance"
+intc_0 // 0
+app_local_put
+intc 4 // 1
+return
