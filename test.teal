@@ -1,7 +1,28 @@
 #pragma version 5
 
-byte ""
-int 0
-getbit
-//debug_display_stack
-int 1
+intcblock 1 0 2 386192725 4 10000 30 3
+bytecblock 0x41 0x42 0x4c 0x4c544944 0x 0x3f
+
+txn GroupIndex
+gtxns Amount
+
+bytec_1 // "B"
+app_global_get
+
+mulw
+
+intc_1 // 0
+bytec_0 // "A"
+app_global_get
+
+txn GroupIndex
+gtxns Amount
+
++
+
+divmodw
+pop
+pop
+swap
+!
+assert

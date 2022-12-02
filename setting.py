@@ -13,8 +13,6 @@ DB_PATH = './db/'
 ALGO_DB = "algorand"
 ALGO_USER = "algorand"
 ALGO_PWD = "daige@@1999"
-#ALGO_HOST = "47.93.240.23"
-#ALGO_PORT = "57124"
 ALGO_HOST = "127.0.0.1"
 ALGO_PORT = "5432"
 

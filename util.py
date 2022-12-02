@@ -10,6 +10,8 @@ import logging
 import z3
 from urllib.error import URLError
 from algosdk.error import AlgodHTTPError
+from algosdk.future import transaction
+from algosdk.encoding import decode_address, future_msgpack_decode
 
 log = logging.getLogger(__name__)
 
@@ -111,10 +113,19 @@ def read_app_info(app_id):
     return decompile(approval_program), global_state
 
 
+def get_lsig_address(teal_program):
+    response = setting.algod_client.compile(teal_program)
+    programstr = response['result']
+    program = base64.decodebytes(programstr.encode())
+    lsig = transaction.LogicSig(program)
+    return decode_address(lsig.address()).decode("Latin-1")
+
+
 if __name__ == '__main__':
-    approval_file_name, global_state = read_app_info(233725848)
-    print(approval_file_name)
-    print(global_state)
+    app_info = setting.algod_client.asset_info(150)
+    #approval_file_name, global_state = read_app_info(233725848)
+    #print(approval_file_name)
+    #print(global_state)
 
 
 # tealer ./input.txt --print-cfg; dot -Tps cfg.dot -o cfg.ps

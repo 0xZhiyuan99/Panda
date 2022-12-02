@@ -17,11 +17,11 @@ UNDEFINED_BYTES_BLOCK = 109
 INVALID_BYTEC_BLOCK = 110
 INTERNAL_JUMP_INSTRUCTION = 111
 INVALID_SCRATCH_INDEX = 112
-INVALID_COVER_PARAM = 113
+#INVALID_COVER_PARAM = 113
 INVALID_INTCBLOCK = 114
 UNRECOGNISED_OPCODE = 115
 INTERNAL_TYPE_MISMATCH = 116
-UNRECOGNISED_DATA_FORMAT = 117
+#UNRECOGNISED_DATA_FORMAT = 117
 INVALID_OPCODE = 118
 CONFIGURATION_ERROR = 119
 UNRECOGNISED_DEFINITION_TYPE = 120
@@ -108,17 +108,33 @@ app_call_group_index = -1
 path_include_app = 0
 
 itxn_field = {}
+itxn_index = 0
+for i in range(16):
+    itxn_field[i] = {
+        "ApplicationArgs": [],
+        "Accounts": [],
+        "Assets": [],
+        "Applications": [],
+        "Logs": [],
+        "ApprovalProgramPages": [],
+        "ClearStateProgramPages": [],
+    }
+
+lsig_address = None
 
 def end_process():
     end_time = time.time()
     # Output the statistic info
-    print("======================================", flush=True)
+    print("\033[0;30;47m")
+    print("\033[0;30;47m======================================", flush=True)
     opcode_kinds = len(set([ x["type"] for x in list(instructions.values())[:-1] ]))
-    print('Done Symbolic Execution (Time: {}, Opcodes: {}({}), Leaves Number: {}, Total Path: {}, Feasible Path: {})'.format(
+    print('\033[0;34;47mDone Symbolic Execution (Time: {}, Opcodes: {}({}), Leaves Number: {}, Total Path: {}, Feasible Path: {})'.format(
                 format(end_time - start_time, '.2f'), len(instructions)-1, opcode_kinds, leaves_number, 
                 total_path, feasible_path), flush=True )
     for i in range(len(analyzer.message_record)):
         print(analyzer.message_record[i], flush=True)
-        print("Backtrace: ",analyzer.backtrace_record[i], flush=True)
-    print("======================================", flush=True)
+        print("\033[0;30;47mBacktrace: ",analyzer.backtrace_record[i], flush=True)
+    for i in range(len(analyzer.vulnerable_asset_record)):
+        print(analyzer.vulnerable_asset_record[i])
+    print("\033[0;30;47m======================================\033[0m\n", flush=True)
     os._exit(0)

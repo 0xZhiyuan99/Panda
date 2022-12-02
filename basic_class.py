@@ -12,8 +12,8 @@ log = logging.getLogger(__name__)
 class ConfigurationError(Exception):
     def __init__(self):
         if setting.DEBUG_MODE == True:
-            #print("Instruction: ", runtime.instructions[runtime.pc])
-            exit(runtime.CONFIGURATION_ERROR)
+            print("Instruction: ", runtime.instructions[runtime.pc])
+            #exit(runtime.CONFIGURATION_ERROR)
 
 class Timeout:
     """Timeout class using ALARM signal."""
@@ -71,10 +71,14 @@ class Configuration:
             self.bytes_block = []
             self.stack = []
             self.call_stack = []
+            self.frame_stack = []
+            self.proto_arg = []
+            self.proto_return = []
             self.opcode_record = {
                 "itxn_submit": False,
                 "app_global_put": False,
                 "app_local_put": False,
+                "app_local_get": False,
                 "timestamp": False,
                 "local_users": [],
                 "gtxn_pay_index": [],
@@ -119,6 +123,15 @@ class Configuration:
             log.info("ConfigurationError: invalid call stack operation")
             raise ConfigurationError
         return self.call_stack.pop()
+
+    def frame_stack_push(self, val):
+        self.frame_stack.append(val)
+
+    def frame_stack_pop(self):
+        if len(self.frame_stack) == 0:
+            log.info("ConfigurationError: invalid frame stack operation")
+            raise ConfigurationError
+        return self.frame_stack.pop()
 
     def stack_push(self, val):
         self.stack.append(val)

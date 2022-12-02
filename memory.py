@@ -128,18 +128,26 @@ gtxn_CreatedAssetID = z3.Array('gtxn_CreatedAssetID', z3.BitVecSort(64), z3.BitV
 gtxn_CreatedApplicationID = z3.Array('gtxn_CreatedApplicationID', z3.BitVecSort(64), z3.BitVecSort(64))
 gtxn_LastLog = z3.Array('gtxn_LastLog', z3.BitVecSort(64), z3.StringSort())
 gtxn_StateProofPK = z3.Array('gtxn_StateProofPK', z3.BitVecSort(64), z3.StringSort())
+gtxn_NumApprovalProgramPages = z3.Array('gtxn_NumApprovalProgramPages', z3.BitVecSort(64), z3.BitVecSort(64))
+gtxn_NumClearStateProgramPages = z3.Array('gtxn_NumClearStateProgramPages', z3.BitVecSort(64), z3.BitVecSort(64))
+
 
 # gtxnsa_handle gtxnas_handle gtxnsas_handle
 gtxna_ApplicationArgs = z3.Array('gtxna_ApplicationArgs', z3.BitVecSort(64), z3.ArraySort(z3.BitVecSort(64), z3.StringSort()))
 gtxna_Applications = z3.Array('gtxna_Applications', z3.BitVecSort(64), z3.ArraySort(z3.BitVecSort(64), z3.BitVecSort(64)))
 gtxna_Assets = z3.Array('gtxna_Assets', z3.BitVecSort(64), z3.ArraySort(z3.BitVecSort(64), z3.BitVecSort(64)))
 gtxna_Accounts = z3.Array('gtxna_Accounts', z3.BitVecSort(64), z3.ArraySort(z3.BitVecSort(64), z3.StringSort()))
+gtxna_Logs = z3.Array('gtxna_Logs', z3.BitVecSort(64), z3.ArraySort(z3.BitVecSort(64), z3.StringSort()))
+gtxna_ApprovalProgramPages = z3.Array('gtxna_ApprovalProgramPages', z3.BitVecSort(64), z3.ArraySort(z3.BitVecSort(64), z3.StringSort()))
+gtxna_ClearStateProgramPages = z3.Array('gtxna_ClearStateProgramPages', z3.BitVecSort(64), z3.ArraySort(z3.BitVecSort(64), z3.StringSort()))
 
 # balance_handle
 asset_holding_balance_uint = z3.Array('asset_holding_balance_uint', z3.BitVecSort(64), z3.ArraySort(z3.BitVecSort(64), z3.BitVecSort(64)))
 asset_holding_balance_bytes = z3.Array('asset_holding_balance_bytes', z3.StringSort(), z3.ArraySort(z3.BitVecSort(64), z3.BitVecSort(64)))
 asset_holding_frozen_uint = z3.Array('asset_holding_frozen_uint', z3.BitVecSort(64), z3.ArraySort(z3.BitVecSort(64), z3.BitVecSort(64)))
 asset_holding_frozen_bytes = z3.Array('asset_holding_frozen_bytes', z3.StringSort(), z3.ArraySort(z3.BitVecSort(64), z3.BitVecSort(64)))
+
+AcctAuthAddr_array_bytes = z3.Array('AcctAuthAddr_array_bytes', z3.StringSort(), z3.StringSort())
 
 
 def select_2D_array(array, param1, param2):

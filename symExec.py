@@ -20,13 +20,14 @@ def parse_instructions():
     address = 0
     reach_file_end = False
     with open(setting.SOURCE_FILENAME, 'r') as teal_file:
-        version_split = teal_file.readline().split(" ")
+        version_split = teal_file.readline().split("#pragma version")
+
         if len(version_split) < 2:
             log.error("Unable to resolve TEAL version")
             exit(runtime.PARSE_INSTRUCTIONS_FAILED)
         else:
-            runtime.version = int(version_split[2].strip())
-            if runtime.version > 5:
+            runtime.version = int(version_split[1].strip())
+            if runtime.version > 8:
                 log.error("Unsupported TEAL version")
                 exit(runtime.PARSE_INSTRUCTIONS_FAILED)
         
@@ -48,10 +49,20 @@ def parse_instructions():
                 continue
             token = token.strip()
 
-            # TODO: if "//" in the string argument of the byte opcode, then a parse error will occur
             if "//" in token:
-                comment = token.split("//")[1].strip()
-                token = token.split("//")[0].strip()
+                byte_match = re.match("byte \"(.*)\"", token)
+                pushbytes_match = re.match("pushbytes \"(.*)\"", token)
+                if byte_match != None:
+                    message = token.split(byte_match.group(1))[1]
+                elif pushbytes_match != None:
+                    message = token.split(pushbytes_match.group(1))[1]
+                else:
+                    message = token
+                if "//" in message:
+                    comment = message.split("//")[1]
+                    token = token.split("//" + comment)[0].strip()
+                else:
+                    comment = None
             else:
                 comment = None
             
@@ -78,7 +89,7 @@ def parse_instructions():
             opcode_type = token.split(" ")[0].strip()
             if runtime.app_call_group_index == -1:
                 # Check whether each opcode is legal
-                if opcodes.params_number(opcode_type) != len(params) and opcode_type != "intcblock" and opcode_type != "bytecblock":
+                if opcodes.params_number(opcode_type) != len(params) and opcodes.params_number(opcode_type) != -1:
                     log.error("Opcode parameter numbers mismatch at line {}".format(line_number))
                     exit(runtime.PARSE_INSTRUCTIONS_FAILED)
                 if setting.IS_SMART_CONTRACT and not opcodes.support_application_mode(opcode_type):
@@ -120,6 +131,15 @@ def parse_labels():
                 exit(runtime.PARSE_LABELS_FAILED)
             instruction["dest_label"] = label
             instruction["params"] = [str(runtime.labels[label])]
+        elif instruction["type"] == "switch":
+            for index in range(len(instruction["params"])):
+                label = instruction["params"][index]
+                if label not in runtime.labels:
+                    log.error("Invalid label at line {}".format(instruction["line_number"]))
+                    exit(runtime.PARSE_LABELS_FAILED)
+                #instruction["dest_labels"][index] = label
+                instruction["params"][index] = str(runtime.labels[label])
+
 
 def construct_basic_block():
     current_block_instructions = {}
@@ -226,9 +246,12 @@ def include_app():
         print("Recombined File:", tmp.name)
     return
     
+
 def initialize_symbolic_environment():
     global initial_configuration
     initial_configuration = Configuration()
+    if setting.IS_LOGIC_SIGNATURE:
+        runtime.lsig_address = util.get_lsig_address(open(setting.SOURCE_FILENAME, 'r').read())
     if setting.INCLUDE_APP:
         include_app()
     if setting.APPLICATION_ID != 0:
@@ -246,6 +269,7 @@ def initialize_symbolic_environment():
     for key in range(256):
         initial_configuration.scratch_space_return_uint = z3.Store(initial_configuration.scratch_space_return_uint, z3.BitVecVal(key,64), z3.BitVecVal(0,64))
         initial_configuration.scratch_space_return_bytes = z3.Store(initial_configuration.scratch_space_return_bytes, z3.BitVecVal(key,64), z3.StringVal(""))
+
 
 def analysis_entry_point():
     initialize_symbolic_environment()
