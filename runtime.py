@@ -107,6 +107,8 @@ version = 0
 app_call_group_index = -1
 path_include_app = 0
 
+itxn_field = {}
+
 def end_process():
     end_time = time.time()
     # Output the statistic info

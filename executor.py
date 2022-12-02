@@ -432,7 +432,7 @@ def rem_handle(configuration, instruction):
         log.info("Z3 timeout (rem_handle)")
         return False
     
-    result = val2 % val1
+    result = z3.URem(val2, val1)
     configuration.stack_push( util.Uint(result) )
     return True
 
@@ -695,8 +695,14 @@ def btoi_handle(configuration, instruction):
         log.debug("Use symbolic btoi() variable")
     else:
         # Handle byte constant
-        int_val = int( val1.as_string().replace("\\u{}","\x00").encode("Latin-1").hex(), 16)
-        z3_int_val = z3.BitVecVal(int(int_val), 64)
+        if len(val1.as_string()) == 0:
+             z3_int_val = z3.BitVecVal(0, 64)
+        else:
+            int_val = int( val1.as_string().replace("\\u{}","\x00").encode("Latin-1").hex(), 16)
+            if int_val > 2 ** 64 - 1:
+                log.info("btoi opcode overflow")
+                return False
+            z3_int_val = z3.BitVecVal(int(int_val), 64)
     configuration.stack_push( util.Uint(z3_int_val) )
     return True
 
@@ -867,6 +873,15 @@ def exp_handle(configuration, instruction):
         log.info("Z3 timeout (exp_handle)")
         return False
 
+    runtime.solver.add( z3.BV2Int(val2) ** z3.BV2Int(val1) <= 2 ** 64 - 1 )
+    flag = runtime.solver.check()
+    if flag == z3.unsat:
+        log.info("Exp opcode overflow")
+        return False
+    elif flag == z3.unknown:
+        log.info("Z3 timeout (exp_handle)")
+        return False
+    
     result = z3.Int2BV(z3.BV2Int(val2) ** z3.BV2Int(val1), 64)
     configuration.stack_push( util.Uint(result) )
     return True
@@ -2055,7 +2070,11 @@ def itxn_field_handle(configuration, instruction):
     Availability: v5
     Mode: Application
     """
-    configuration.stack_pop("original")
+
+    val = configuration.stack_pop("original")
+    param0 = instruction["params"][0]
+    runtime.itxn_field[param0] = val
+
     return True
 
 def itxn_submit_handle(configuration, instruction):
@@ -2315,19 +2334,6 @@ def app_params_get_handle(configuration, instruction):
     configuration.stack_push(util.Uint( z3.BitVecVal( 1, 64 ))) # Always exist
     return True
 
-def getbyte_handle(configuration, instruction):
-    """
-    Opcode: 0x55
-    Stack: ..., A: []byte, B: uint64 -> ..., uint64
-    Bth byte of A, as an integer
-    Availability: v3
-    """
-    val1 = configuration.stack_pop("uint")
-    val2 = configuration.stack_pop("bytes")
-    result = z3.SubString(val2, z3.BV2Int(val1), 1)
-    configuration.stack_push( util.Bytes(result) )
-    return True
-
 def extract_handle(configuration, instruction):
     """
     Opcode: 0x57 {uint8 start position} {uint8 length}
@@ -2499,6 +2505,1267 @@ def app_local_del_handle(configuration, instruction):
         configuration.local_state_bytes_return_bytes = memory.store_2D_array(configuration.local_state_bytes_return_bytes, account["value"], key, z3.StringVal(""))
     return True
 
+
+
+def ecdsa_pk_decompress_handle(configuration, instruction):
+    """
+    Opcode: 0x06 {uint8 curve index}
+    Stack: ..., A: []byte → ..., X: []byte, Y: []byte
+    decompress pubkey A into components X, Y
+    Availability: v5
+    """    
+    val1 = configuration.stack_pop("bytes")
+    resultX = z3.String( "ecdsa_pk_decompress({}_X)".format(val1.__str__()) )
+    resultY = z3.String( "ecdsa_pk_decompress({}_Y)".format(val1.__str__()) )
+
+    runtime.solver.add( z3.Length(val1) == 33 )
+    flag = runtime.solver.check()
+    if flag == z3.unsat:
+        log.info("The input of ecdsa_pk_decompress is not 33 bytes long")
+        return False
+    elif flag == z3.unknown:
+        log.info("Z3 timeout (ecdsa_pk_decompress_handle)")
+        return False
+
+
+    configuration.stack_push( util.Bytes(resultX) )
+    configuration.stack_push( util.Bytes(resultY) )
+    log.info("Function ecdsa_pk_decompress detected")
+    return True
+
+
+def ecdsa_pk_recover_handle(configuration, instruction):
+    """
+    Opcode: 0x07 {uint8 curve index}
+    Stack: ..., A: []byte, B: uint64, C: []byte, D: []byte → ..., X: []byte, Y: []byte
+    for (data A, recovery id B, signature C, D) recover a public key
+    Cost: 2000
+    Availability: v5
+    """    
+    valD = configuration.stack_pop("bytes")
+    valC = configuration.stack_pop("bytes")
+    valB = configuration.stack_pop("bytes")
+    valA = configuration.stack_pop("bytes")
+
+    pkID = valA.__str__() + valB.__str__() + valC.__str__() + valD.__str__()
+
+    resultX = z3.String( "ecdsa_pk_recover({}_X)".format(pkID) )
+    resultY = z3.String( "ecdsa_pk_recover({}_Y)".format(pkID) )
+
+    configuration.stack_push( util.Bytes(resultX) )
+    configuration.stack_push( util.Bytes(resultY) )
+    log.info("Function ecdsa_pk_recover detected")
+    return True
+
+
+def mulw_handle(configuration, instruction):
+    """
+    Opcode: 0x1d
+    Stack: ..., A: uint64, B: uint64 → ..., X: uint64, Y: uint64
+    A times B as a 128-bit result in two uint64s. X is the high 64 bits, Y is the low
+    """    
+    valB = configuration.stack_pop("uint")
+    valA = configuration.stack_pop("uint")
+
+    runtime.solver.add( z3.BV2Int(valA) * z3.BV2Int(valB) <= 2 ** 128 - 1 )
+    flag = runtime.solver.check()
+    if flag == z3.unsat:
+        log.info("mulw opcode overflow")
+        return False
+    elif flag == z3.unknown:
+        log.info("Z3 timeout (mulw_handle)")
+        return False
+    
+    result = z3.Int2BV(z3.BV2Int(valA) * z3.BV2Int(valB), 128)
+    resultY = z3.Extract(63, 0, result)
+    resultX = z3.Extract(127, 64, result)
+
+    configuration.stack_push( util.Uint(resultX) )
+    configuration.stack_push( util.Uint(resultY) )
+    return True
+
+
+def addw_handle(configuration, instruction):
+    """
+    Opcode: 0x1e
+    Stack: ..., A: uint64, B: uint64 → ..., X: uint64, Y: uint64
+    A plus B as a 128-bit result. X is the carry-bit, Y is the low-order 64 bits.
+    Availability: v2
+    """    
+    valB = configuration.stack_pop("uint")
+    valA = configuration.stack_pop("uint")
+
+    result = z3.Int2BV(z3.BV2Int(valA) + z3.BV2Int(valB), 128)
+    resultY = z3.Extract(63, 0, result)
+    resultX = z3.Extract(127, 64, result)
+
+    configuration.stack_push( util.Uint(resultX) )
+    configuration.stack_push( util.Uint(resultY) )
+    return True
+
+
+def divmodw_handle(configuration, instruction):
+    """
+    Opcode: 0x1f
+    Stack: ..., A: uint64, B: uint64, C: uint64, D: uint64 → ..., W: uint64, X: uint64, Y: uint64, Z: uint64
+    W,X = (A,B / C,D); Y,Z = (A,B modulo C,D)
+    Cost: 20
+    Availability: v4
+    """
+    valD = configuration.stack_pop("uint")
+    valC = configuration.stack_pop("uint")
+    valB = configuration.stack_pop("uint")
+    valA = configuration.stack_pop("uint")
+
+    valAB = z3.Concat(valA, valB)
+    valCD = z3.Concat(valC, valD)
+
+    runtime.solver.add( valCD != 0 )
+    flag = runtime.solver.check()
+    if flag == z3.unsat:
+        log.info("Divide by zero detected")
+        return False
+    elif flag == z3.unknown:
+        log.info("Z3 timeout (divmodw_handle)")
+        return False
+    
+    result1 = z3.UDiv(valAB, valCD)
+    result2 = z3.URem(valAB, valCD)
+
+    resultX = z3.Extract(63, 0, result1)
+    resultW = z3.Extract(127, 64, result1)
+    resultZ = z3.Extract(63, 0, result2)
+    resultY = z3.Extract(127, 64, result2)
+
+    configuration.stack_push( util.Uint(resultW) )
+    configuration.stack_push( util.Uint(resultX) )
+    configuration.stack_push( util.Uint(resultY) )
+    configuration.stack_push( util.Uint(resultZ) )
+    return True
+
+
+def getbyte_handle(configuration, instruction):
+    """
+    Opcode: 0x55
+    Stack: ..., A: []byte, B: uint64 -> ..., uint64
+    Bth byte of A, as an integer
+    Availability: v3
+    """
+    val1 = configuration.stack_pop("uint")
+    val2 = configuration.stack_pop("bytes")
+    
+    result = z3.Int2BV(z3.StrToCode(z3.SubString(val2, z3.BV2Int(val1), 1)), 64)
+    configuration.stack_push( util.Uint(result) )
+    return True
+
+def setbyte_handle(configuration, instruction):
+    """
+    Opcode: 0x56
+    Stack: ..., A: []byte, B: uint64, C: uint64 → ..., []byte
+    Copy of A with the Bth byte set to small integer (between 0..255) C. If B is greater than or equal to the array length, the program fails
+    Availability: v3
+    """
+    valC = configuration.stack_pop("uint")
+    valB = configuration.stack_pop("uint")
+    valA = configuration.stack_pop("bytes")
+    
+    result = z3.Concat(
+        z3.SubString(valA, 0, z3.BV2Int(valB)),
+        z3.StrFromCode(z3.BV2Int(valC)),
+        z3.SubString(valA, z3.BV2Int(valB)+1, z3.Length(valA)-z3.BV2Int(valB)),
+    )
+
+    configuration.stack_push( util.Bytes(result) )
+    return True
+
+def extract_uint16_handle(configuration, instruction):
+    """
+    Opcode: 0x59
+    Stack: ..., A: []byte, B: uint64 → ..., uint64
+    A uint16 formed from a range of big-endian bytes from A starting at B up to but not including B+2. If B+2 is larger than the array length, the program fails
+    Availability: v5
+    """    
+    valB = configuration.stack_pop("uint")
+    valA = configuration.stack_pop("bytes")
+
+    runtime.solver.add( z3.Length(valA) > z3.BV2Int(valB) + 1)
+
+    flag = runtime.solver.check()
+    if flag == z3.unsat:
+        log.info("Invalid extract_uint16 opcode")
+        return False
+    elif flag == z3.unknown:
+        log.info("Z3 timeout (extract_uint16)")
+        return False
+
+    result_string = z3.SubString(valA, z3.BV2Int(valB), 2)
+   
+    result1 = z3.Int2BV(z3.StrToCode(z3.SubString(result_string, 0, 1)) ,8)
+    result2 = z3.Int2BV(z3.StrToCode(z3.SubString(result_string, 1, 1)) ,8)
+
+    final_result = z3.Concat(result1, result2)
+
+    configuration.stack_push( util.Uint(final_result) )
+    return True
+
+
+def extract_uint32_handle(configuration, instruction):
+    """
+    Opcode: 0x5a
+    Stack: ..., A: []byte, B: uint64 → ..., uint64
+    A uint32 formed from a range of big-endian bytes from A starting at B up to but not including B+4. If B+4 is larger than the array length, the program fails
+    Availability: v5
+    """    
+    valB = configuration.stack_pop("uint")
+    valA = configuration.stack_pop("bytes")
+
+    runtime.solver.add( z3.Length(valA) > z3.BV2Int(valB) + 3)
+
+    flag = runtime.solver.check()
+    if flag == z3.unsat:
+        log.info("Invalid extract_uint32 opcode")
+        return False
+    elif flag == z3.unknown:
+        log.info("Z3 timeout (extract_uint32)")
+        return False
+    
+    result_string = z3.SubString(valA, z3.BV2Int(valB), 4)
+   
+    result1 = z3.Int2BV(z3.StrToCode(z3.SubString(result_string, 0, 1)) ,8)
+    result2 = z3.Int2BV(z3.StrToCode(z3.SubString(result_string, 1, 1)) ,8)
+    result3 = z3.Int2BV(z3.StrToCode(z3.SubString(result_string, 2, 1)) ,8)
+    result4 = z3.Int2BV(z3.StrToCode(z3.SubString(result_string, 3, 1)) ,8)
+
+    final_result = z3.Concat(result1, result2, result3, result4)
+
+    configuration.stack_push( util.Uint(final_result) )
+    return True
+
+
+def extract_uint64_handle(configuration, instruction):
+    """
+    Opcode: 0x5b
+    Stack: ..., A: []byte, B: uint64 → ..., uint64
+    A uint64 formed from a range of big-endian bytes from A starting at B up to but not including B+8. If B+8 is larger than the array length, the program fails
+    Availability: v5
+    """    
+    valB = configuration.stack_pop("uint")
+    valA = configuration.stack_pop("bytes")
+
+    runtime.solver.add( z3.Length(valA) > z3.BV2Int(valB) + 7)
+
+    flag = runtime.solver.check()
+    if flag == z3.unsat:
+        log.info("Invalid extract_uint64 opcode")
+        return False
+    elif flag == z3.unknown:
+        log.info("Z3 timeout (extract_uint64)")
+        return False
+    
+    result_string = z3.SubString(valA, z3.BV2Int(valB), 8)
+   
+    result1 = z3.Int2BV(z3.StrToCode(z3.SubString(result_string, 0, 1)) ,8)
+    result2 = z3.Int2BV(z3.StrToCode(z3.SubString(result_string, 1, 1)) ,8)
+    result3 = z3.Int2BV(z3.StrToCode(z3.SubString(result_string, 2, 1)) ,8)
+    result4 = z3.Int2BV(z3.StrToCode(z3.SubString(result_string, 3, 1)) ,8)
+    result5 = z3.Int2BV(z3.StrToCode(z3.SubString(result_string, 4, 1)) ,8)
+    result6 = z3.Int2BV(z3.StrToCode(z3.SubString(result_string, 5, 1)) ,8)
+    result7 = z3.Int2BV(z3.StrToCode(z3.SubString(result_string, 6, 1)) ,8)
+    result8 = z3.Int2BV(z3.StrToCode(z3.SubString(result_string, 7, 1)) ,8)
+
+    final_result = z3.Concat(result1, result2, result3, result4, result5, result6, result7, result8)
+
+    configuration.stack_push( util.Uint(final_result) )
+    return True
+
+
+def expw_handle(configuration, instruction):
+    """
+    Opcode: 0x95
+    Stack: ..., A: uint64, B: uint64 → ..., X: uint64, Y: uint64
+    A raised to the Bth power as a 128-bit result in two uint64s. X is the high 64 bits, Y is the low. Fail if A == B == 0 or if the results exceeds 2^128-1
+    Cost: 10
+    Availability: v4
+    """
+    valB = configuration.stack_pop("uint")
+    valA = configuration.stack_pop("uint")
+    if not z3.is_bv_value(valB):
+        log.debug("Z3 cannot handle non-polynomial problem")
+        return False
+    
+    # 0 to the 0th power is mathematically undefined in Z3
+    runtime.solver.add( z3.Or(valA != 0, valB != 0) )
+    flag = runtime.solver.check()
+    if flag == z3.unsat:
+        log.info("Expw(0,0) detected")
+        return False
+    elif flag == z3.unknown:
+        log.info("Z3 timeout (expw_handle)")
+        return False
+
+    runtime.solver.add( z3.BV2Int(valA) ** z3.BV2Int(valB) <= 2 ** 128 - 1 )
+    flag = runtime.solver.check()
+    if flag == z3.unsat:
+        log.info("Expw opcode overflow")
+        return False
+    elif flag == z3.unknown:
+        log.info("Z3 timeout (expw_handle)")
+        return False
+
+    result = z3.Int2BV(z3.BV2Int(valA) ** z3.BV2Int(valB), 128)
+    resultY = z3.Extract(63, 0, result)
+    resultX = z3.Extract(127, 64, result)
+
+    configuration.stack_push( util.Uint(resultX) )
+    configuration.stack_push( util.Uint(resultY) )
+    return True
+
+
+def BEQ_handle(configuration, instruction):
+    """
+    Opcode: 0xa8
+    Stack: ..., A: []byte, B: []byte → ..., uint64
+    1 if A is equal to B, else 0. A and B are interpreted as big-endian unsigned integers
+    Availability: v4
+    """
+    valB = configuration.stack_pop("bytes")
+    valA = configuration.stack_pop("bytes")
+    result = z3.If(valA == valB, z3.BitVecVal(1, 64), z3.BitVecVal(0, 64))
+    configuration.stack_push( util.Uint(result) )
+    return True
+
+def BNEQ_handle(configuration, instruction):
+    """
+    Opcode: 0xa9
+    Stack: ..., A: []byte, B: []byte → ..., uint64
+    0 if A is equal to B, else 1. A and B are interpreted as big-endian unsigned integers
+    Availability: v4
+    """
+    valB = configuration.stack_pop("bytes")
+    valA = configuration.stack_pop("bytes")
+    result = z3.If(valA != valB, z3.BitVecVal(1, 64), z3.BitVecVal(0, 64))
+    configuration.stack_push( util.Uint(result) )
+    return True
+
+def Badd_handle(configuration, instruction):
+    """
+    Opcode: 0xa0
+    Stack: ..., A: []byte, B: []byte → ..., []byte
+    A plus B. A and B are interpreted as big-endian unsigned integers
+    Cost: 10
+    Availability: v4
+    """
+    valB = z3.simplify(configuration.stack_pop("bytes"))
+    valA = z3.simplify(configuration.stack_pop("bytes"))
+    bvA = None
+    bvB = None
+
+    if z3.is_string_value(valA) and z3.is_string_value(valB):
+        lengthA = z3.simplify(z3.Length(valA)).as_long()
+        lengthB = z3.simplify(z3.Length(valB)).as_long()
+        for i in range(lengthA):
+            if bvA == None:
+                bvA = z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+            else:
+                bvA = z3.Concat(
+                    bvA,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+                )
+        for i in range(lengthB):
+            if bvB == None:
+                bvB = z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+            else:
+                bvB = z3.Concat(
+                    bvB,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+                )
+        result = z3.simplify(z3.BV2Int(bvA) + z3.BV2Int(bvB))
+        final_length = 0
+        tmpBV = z3.Int2BV(result, (lengthA + lengthB) * 8)
+
+        for i in reversed(range(7, (lengthA + lengthB) * 8, 8)):
+            if z3.simplify(z3.BV2Int((z3.Extract(i,i-7,tmpBV)))).as_long() != 0:
+                final_length = i + 1
+                break
+        
+        final_string = z3.StringVal("")
+
+        if final_length == 0:
+            configuration.stack_push( util.Bytes(final_string) )
+        else:
+            finalBV = z3.Int2BV(result, final_length)
+            for i in range(7, final_length, 8):
+                final_string = z3.Concat(
+                    z3.StrFromCode(z3.BV2Int(z3.Extract(i,i-7,finalBV))),
+                    final_string
+                )
+            configuration.stack_push( util.Bytes(final_string) )
+        return True
+    else:
+        log.info("Symbolic operand in b+ opcode")
+        return False
+
+
+def Bsub_handle(configuration, instruction):
+    """
+    Opcode: 0xa1
+    Stack: ..., A: []byte, B: []byte → ..., []byte
+    A minus B. A and B are interpreted as big-endian unsigned integers. Fail on underflow.
+    Cost: 10
+    Availability: v4
+    """
+    valB = z3.simplify(configuration.stack_pop("bytes"))
+    valA = z3.simplify(configuration.stack_pop("bytes"))
+    bvA = None
+    bvB = None
+
+    if z3.is_string_value(valA) and z3.is_string_value(valB):
+        lengthA = z3.simplify(z3.Length(valA)).as_long()
+        lengthB = z3.simplify(z3.Length(valB)).as_long()
+        for i in range(lengthA):
+            if bvA == None:
+                bvA = z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+            else:
+                bvA = z3.Concat(
+                    bvA,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+                )
+        for i in range(lengthB):
+            if bvB == None:
+                bvB = z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+            else:
+                bvB = z3.Concat(
+                    bvB,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+                )
+
+        # Cannot use z3.BVSubNoUnderflow because the size of the two bitvectors may be different
+        runtime.solver.add( z3.BV2Int(bvA) >= z3.BV2Int(bvB) )
+        flag = runtime.solver.check()
+        if flag == z3.unsat:
+            log.info("b- opcode overflow")
+            return False
+        elif flag == z3.unknown:
+            log.info("Z3 timeout (Bsub_handle)")
+            return False
+
+        result = z3.simplify(z3.BV2Int(bvA) - z3.BV2Int(bvB))        
+        final_length = 0
+        tmpBV = z3.Int2BV(result, (lengthA + lengthB) * 8)
+
+        for i in reversed(range(7, (lengthA + lengthB) * 8, 8)):
+            if z3.simplify(z3.BV2Int((z3.Extract(i,i-7,tmpBV)))).as_long() != 0:
+                final_length = i + 1
+                break
+        
+        final_string = z3.StringVal("")
+
+        if final_length == 0:
+            configuration.stack_push( util.Bytes(final_string) )
+        else:
+            finalBV = z3.Int2BV(result, final_length)
+            for i in range(7, final_length, 8):
+                final_string = z3.Concat(
+                    z3.StrFromCode(z3.BV2Int(z3.Extract(i,i-7,finalBV))),
+                    final_string
+                )
+            configuration.stack_push( util.Bytes(final_string) )
+        return True
+    else:
+        log.info("Symbolic operand in b- opcode")
+        return False
+
+
+def Bmul_handle(configuration, instruction):
+    """
+    Opcode: 0xa3
+    Stack: ..., A: []byte, B: []byte → ..., []byte
+    A times B. A and B are interpreted as big-endian unsigned integers.
+    Cost: 20
+    Availability: v4
+    """
+    valB = z3.simplify(configuration.stack_pop("bytes"))
+    valA = z3.simplify(configuration.stack_pop("bytes"))
+    bvA = None
+    bvB = None
+
+    if z3.is_string_value(valA) and z3.is_string_value(valB):
+        lengthA = z3.simplify(z3.Length(valA)).as_long()
+        lengthB = z3.simplify(z3.Length(valB)).as_long()
+        for i in range(lengthA):
+            if bvA == None:
+                bvA = z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+            else:
+                bvA = z3.Concat(
+                    bvA,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+                )
+        for i in range(lengthB):
+            if bvB == None:
+                bvB = z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+            else:
+                bvB = z3.Concat(
+                    bvB,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+                )
+
+        result = z3.simplify(z3.BV2Int(bvA) * z3.BV2Int(bvB))        
+        final_length = 0
+        tmpBV = z3.Int2BV(result, (lengthA + lengthB) * 8)
+
+        for i in reversed(range(7, (lengthA + lengthB) * 8, 8)):
+            if z3.simplify(z3.BV2Int((z3.Extract(i,i-7,tmpBV)))).as_long() != 0:
+                final_length = i + 1
+                break
+        
+        final_string = z3.StringVal("")
+
+        if final_length == 0:
+            configuration.stack_push( util.Bytes(final_string) )
+        else:
+            finalBV = z3.Int2BV(result, final_length)
+            for i in range(7, final_length, 8):
+                final_string = z3.Concat(
+                    z3.StrFromCode(z3.BV2Int(z3.Extract(i,i-7,finalBV))),
+                    final_string
+                )
+            configuration.stack_push( util.Bytes(final_string) )
+        return True
+    else:
+        log.info("Symbolic operand in b* opcode")
+        return False
+
+
+def Bdiv_handle(configuration, instruction):
+    """
+    Opcode: 0xa2
+    Stack: ..., A: []byte, B: []byte → ..., []byte
+    A divided by B (truncated division). A and B are interpreted as big-endian unsigned integers. Fail if B is zero.
+    Cost: 20
+    Availability: v4
+    """
+    valB = z3.simplify(configuration.stack_pop("bytes"))
+    valA = z3.simplify(configuration.stack_pop("bytes"))
+    bvA = None
+    bvB = None
+
+    if z3.is_string_value(valA) and z3.is_string_value(valB):
+        lengthA = z3.simplify(z3.Length(valA)).as_long()
+        lengthB = z3.simplify(z3.Length(valB)).as_long()
+        for i in range(lengthA):
+            if bvA == None:
+                bvA = z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+            else:
+                bvA = z3.Concat(
+                    bvA,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+                )
+        for i in range(lengthB):
+            if bvB == None:
+                bvB = z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+            else:
+                bvB = z3.Concat(
+                    bvB,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+                )
+
+
+        runtime.solver.add( bvB != 0 )
+        flag = runtime.solver.check()
+        if flag == z3.unsat:
+            log.info("Divide by zero detected")
+            return False
+        elif flag == z3.unknown:
+            log.info("Z3 timeout (Bdiv_handle)")
+            return False
+
+        # Cannot use z3.UDiv because the size of the two bitvectors may be different
+        result = z3.simplify(z3.BV2Int(bvA) / z3.BV2Int(bvB))
+        final_length = 0
+        tmpBV = z3.Int2BV(result, (lengthA + lengthB) * 8)
+
+        for i in reversed(range(7, (lengthA + lengthB) * 8, 8)):
+            if z3.simplify(z3.BV2Int((z3.Extract(i,i-7,tmpBV)))).as_long() != 0:
+                final_length = i + 1
+                break
+        
+        final_string = z3.StringVal("")
+
+        if final_length == 0:
+            configuration.stack_push( util.Bytes(final_string) )
+        else:
+            finalBV = z3.Int2BV(result, final_length)
+            for i in range(7, final_length, 8):
+                final_string = z3.Concat(
+                    z3.StrFromCode(z3.BV2Int(z3.Extract(i,i-7,finalBV))),
+                    final_string
+                )
+            configuration.stack_push( util.Bytes(final_string) )
+        return True
+    else:
+        log.info("Symbolic operand in b/ opcode")
+        return False
+
+
+
+def BLE_handle(configuration, instruction):
+    """
+    Opcode: 0xa6
+    Stack: ..., A: []byte, B: []byte → ..., uint64
+    1 if A is less than or equal to B, else 0. A and B are interpreted as big-endian unsigned integers
+    Availability: v4
+    """
+    valB = z3.simplify(configuration.stack_pop("bytes"))
+    valA = z3.simplify(configuration.stack_pop("bytes"))
+    bvA = None
+    bvB = None
+
+    if z3.is_string_value(valA) and z3.is_string_value(valB):
+        lengthA = z3.simplify(z3.Length(valA)).as_long()
+        lengthB = z3.simplify(z3.Length(valB)).as_long()
+        for i in range(lengthA):
+            if bvA == None:
+                bvA = z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+            else:
+                bvA = z3.Concat(
+                    bvA,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+                )
+        for i in range(lengthB):
+            if bvB == None:
+                bvB = z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+            else:
+                bvB = z3.Concat(
+                    bvB,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+                )
+        result = z3.If(z3.BV2Int(bvA) <= z3.BV2Int(bvB), z3.BitVecVal(1, 64), z3.BitVecVal(0, 64))
+        configuration.stack_push( util.Uint(result) )
+        return True
+    else:
+        log.info("Symbolic operand in b<= opcode")
+        return False
+
+def BLT_handle(configuration, instruction):
+    """
+    Opcode: 0xa4
+    Stack: ..., A: []byte, B: []byte → ..., uint64
+    1 if A is less than B, else 0. A and B are interpreted as big-endian unsigned integers
+    Availability: v4
+    """
+    valB = z3.simplify(configuration.stack_pop("bytes"))
+    valA = z3.simplify(configuration.stack_pop("bytes"))
+    bvA = None
+    bvB = None
+
+    if z3.is_string_value(valA) and z3.is_string_value(valB):
+        lengthA = z3.simplify(z3.Length(valA)).as_long()
+        lengthB = z3.simplify(z3.Length(valB)).as_long()
+        for i in range(lengthA):
+            if bvA == None:
+                bvA = z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+            else:
+                bvA = z3.Concat(
+                    bvA,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+                )
+        for i in range(lengthB):
+            if bvB == None:
+                bvB = z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+            else:
+                bvB = z3.Concat(
+                    bvB,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+                )
+        result = z3.If(z3.BV2Int(bvA) < z3.BV2Int(bvB), z3.BitVecVal(1, 64), z3.BitVecVal(0, 64))
+        configuration.stack_push( util.Uint(result) )
+        return True
+    else:
+        log.info("Symbolic operand in b< opcode")
+        return False
+
+
+def BGE_handle(configuration, instruction):
+    """
+    Opcode: 0xa7
+    Stack: ..., A: []byte, B: []byte → ..., uint64
+    1 if A is greater than or equal to B, else 0. A and B are interpreted as big-endian unsigned integers
+    Availability: v4
+    """
+    valB = z3.simplify(configuration.stack_pop("bytes"))
+    valA = z3.simplify(configuration.stack_pop("bytes"))
+    bvA = None
+    bvB = None
+
+    if z3.is_string_value(valA) and z3.is_string_value(valB):
+        lengthA = z3.simplify(z3.Length(valA)).as_long()
+        lengthB = z3.simplify(z3.Length(valB)).as_long()
+        for i in range(lengthA):
+            if bvA == None:
+                bvA = z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+            else:
+                bvA = z3.Concat(
+                    bvA,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+                )
+        for i in range(lengthB):
+            if bvB == None:
+                bvB = z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+            else:
+                bvB = z3.Concat(
+                    bvB,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+                )
+        result = z3.If(z3.BV2Int(bvA) >= z3.BV2Int(bvB), z3.BitVecVal(1, 64), z3.BitVecVal(0, 64))
+        configuration.stack_push( util.Uint(result) )
+        return True
+    else:
+        log.info("Symbolic operand in b>= opcode")
+        return False
+
+
+def BGT_handle(configuration, instruction):
+    """
+    Opcode: 0xa5
+    Stack: ..., A: []byte, B: []byte → ..., uint64
+    1 if A is greater than B, else 0. A and B are interpreted as big-endian unsigned integers
+    Availability: v4
+    """
+    valB = z3.simplify(configuration.stack_pop("bytes"))
+    valA = z3.simplify(configuration.stack_pop("bytes"))
+    bvA = None
+    bvB = None
+
+    if z3.is_string_value(valA) and z3.is_string_value(valB):
+        lengthA = z3.simplify(z3.Length(valA)).as_long()
+        lengthB = z3.simplify(z3.Length(valB)).as_long()
+        for i in range(lengthA):
+            if bvA == None:
+                bvA = z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+            else:
+                bvA = z3.Concat(
+                    bvA,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+                )
+        for i in range(lengthB):
+            if bvB == None:
+                bvB = z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+            else:
+                bvB = z3.Concat(
+                    bvB,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+                )
+        result = z3.If(z3.BV2Int(bvA) > z3.BV2Int(bvB), z3.BitVecVal(1, 64), z3.BitVecVal(0, 64))
+        configuration.stack_push( util.Uint(result) )
+        return True
+    else:
+        log.info("Symbolic operand in b> opcode")
+        return False
+
+
+def Brem_handle(configuration, instruction):
+    """
+    Opcode: 0xaa
+    Stack: ..., A: []byte, B: []byte → ..., []byte
+    A modulo B. A and B are interpreted as big-endian unsigned integers. Fail if B is zero.
+    Cost: 20
+    Availability: v4
+    """
+    valB = z3.simplify(configuration.stack_pop("bytes"))
+    valA = z3.simplify(configuration.stack_pop("bytes"))
+    bvA = None
+    bvB = None
+
+    if z3.is_string_value(valA) and z3.is_string_value(valB):
+        lengthA = z3.simplify(z3.Length(valA)).as_long()
+        lengthB = z3.simplify(z3.Length(valB)).as_long()
+        for i in range(lengthA):
+            if bvA == None:
+                bvA = z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+            else:
+                bvA = z3.Concat(
+                    bvA,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+                )
+        for i in range(lengthB):
+            if bvB == None:
+                bvB = z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+            else:
+                bvB = z3.Concat(
+                    bvB,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+                )
+
+
+        runtime.solver.add( bvB != 0 )
+        flag = runtime.solver.check()
+        if flag == z3.unsat:
+            log.info("Divide by zero detected")
+            return False
+        elif flag == z3.unknown:
+            log.info("Z3 timeout (Bdiv_handle)")
+            return False
+
+        # Cannot use z3.URem because the size of the two bitvectors may be different
+        result = z3.simplify(z3.BV2Int(bvA) % z3.BV2Int(bvB))
+        final_length = 0
+        tmpBV = z3.Int2BV(result, (lengthA + lengthB) * 8)
+
+        for i in reversed(range(7, (lengthA + lengthB) * 8, 8)):
+            if z3.simplify(z3.BV2Int((z3.Extract(i,i-7,tmpBV)))).as_long() != 0:
+                final_length = i + 1
+                break
+        
+        final_string = z3.StringVal("")
+
+        if final_length == 0:
+            configuration.stack_push( util.Bytes(final_string) )
+        else:
+            finalBV = z3.Int2BV(result, final_length)
+            for i in range(7, final_length, 8):
+                final_string = z3.Concat(
+                    z3.StrFromCode(z3.BV2Int(z3.Extract(i,i-7,finalBV))),
+                    final_string
+                )
+            configuration.stack_push( util.Bytes(final_string) )
+        return True
+    else:
+        log.info("Symbolic operand in b%% opcode")
+        return False
+
+
+
+def Bbit_or_handle(configuration, instruction):
+    """
+    Opcode: 0xab
+    Stack: ..., A: []byte, B: []byte → ..., []byte
+    A bitwise-or B. A and B are zero-left extended to the greater of their lengths
+    Cost: 6
+    Availability: v4
+    """
+    valB = z3.simplify(configuration.stack_pop("bytes"))
+    valA = z3.simplify(configuration.stack_pop("bytes"))
+    bvA = None
+    bvB = None
+
+    if z3.is_string_value(valA) and z3.is_string_value(valB):
+        lengthA = z3.simplify(z3.Length(valA)).as_long()
+        lengthB = z3.simplify(z3.Length(valB)).as_long()
+        for i in range(lengthA):
+            if bvA == None:
+                bvA = z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+            else:
+                bvA = z3.Concat(
+                    bvA,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+                )
+        for i in range(lengthB):
+            if bvB == None:
+                bvB = z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+            else:
+                bvB = z3.Concat(
+                    bvB,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+                )
+        max_length = max(lengthA * 8, lengthB * 8)
+        final_string = z3.StringVal("")
+
+        if max_length == 0:
+            configuration.stack_push( util.Bytes(final_string) )
+        else:
+            finalBV = z3.Int2BV(z3.BV2Int(bvA), max_length) | z3.Int2BV(z3.BV2Int(bvB), max_length)
+            for i in range(7, max_length, 8):
+                final_string = z3.Concat(
+                    z3.StrFromCode(z3.BV2Int(z3.Extract(i,i-7,finalBV))),
+                    final_string
+                )
+            configuration.stack_push( util.Bytes(final_string) )
+        return True
+    else:
+        log.info("Symbolic operand in b| opcode")
+        return False
+
+
+def Bbit_and_handle(configuration, instruction):
+    """
+    Opcode: 0xac
+    Stack: ..., A: []byte, B: []byte → ..., []byte
+    A bitwise-and B. A and B are zero-left extended to the greater of their lengths
+    Cost: 6
+    Availability: v4
+    """
+    valB = z3.simplify(configuration.stack_pop("bytes"))
+    valA = z3.simplify(configuration.stack_pop("bytes"))
+    bvA = None
+    bvB = None
+
+    if z3.is_string_value(valA) and z3.is_string_value(valB):
+        lengthA = z3.simplify(z3.Length(valA)).as_long()
+        lengthB = z3.simplify(z3.Length(valB)).as_long()
+        for i in range(lengthA):
+            if bvA == None:
+                bvA = z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+            else:
+                bvA = z3.Concat(
+                    bvA,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+                )
+        for i in range(lengthB):
+            if bvB == None:
+                bvB = z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+            else:
+                bvB = z3.Concat(
+                    bvB,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+                )
+        max_length = max(lengthA * 8, lengthB * 8)
+        final_string = z3.StringVal("")
+
+        if max_length == 0:
+            configuration.stack_push( util.Bytes(final_string) )
+        else:
+            finalBV = z3.Int2BV(z3.BV2Int(bvA), max_length) & z3.Int2BV(z3.BV2Int(bvB), max_length)
+            for i in range(7, max_length, 8):
+                final_string = z3.Concat(
+                    z3.StrFromCode(z3.BV2Int(z3.Extract(i,i-7,finalBV))),
+                    final_string
+                )
+            configuration.stack_push( util.Bytes(final_string) )
+        return True
+    else:
+        log.info("Symbolic operand in b& opcode")
+        return False
+
+
+def Bbit_xor_handle(configuration, instruction):
+    """
+    Opcode: 0xad
+    Stack: ..., A: []byte, B: []byte → ..., []byte
+    A bitwise-xor B. A and B are zero-left extended to the greater of their lengths
+    Cost: 6
+    Availability: v4
+    """
+    valB = z3.simplify(configuration.stack_pop("bytes"))
+    valA = z3.simplify(configuration.stack_pop("bytes"))
+    bvA = None
+    bvB = None
+
+    if z3.is_string_value(valA) and z3.is_string_value(valB):
+        lengthA = z3.simplify(z3.Length(valA)).as_long()
+        lengthB = z3.simplify(z3.Length(valB)).as_long()
+        for i in range(lengthA):
+            if bvA == None:
+                bvA = z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+            else:
+                bvA = z3.Concat(
+                    bvA,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+                )
+        for i in range(lengthB):
+            if bvB == None:
+                bvB = z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+            else:
+                bvB = z3.Concat(
+                    bvB,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valB, i, 1)) ,8)
+                )
+        max_length = max(lengthA * 8, lengthB * 8)
+        final_string = z3.StringVal("")
+
+        if max_length == 0:
+            configuration.stack_push( util.Bytes(final_string) )
+        else:
+            finalBV = z3.Int2BV(z3.BV2Int(bvA), max_length) ^ z3.Int2BV(z3.BV2Int(bvB), max_length)
+            for i in range(7, max_length, 8):
+                final_string = z3.Concat(
+                    z3.StrFromCode(z3.BV2Int(z3.Extract(i,i-7,finalBV))),
+                    final_string
+                )
+            configuration.stack_push( util.Bytes(final_string) )
+        return True
+    else:
+        log.info("Symbolic operand in b^ opcode")
+        return False
+
+
+
+def Bbit_not_handle(configuration, instruction):
+    """
+    Opcode: 0xae
+    Stack: ..., A: []byte → ..., []byte
+    A with all bits inverted
+    Cost: 4
+    Availability: v4
+    """
+    valA = z3.simplify(configuration.stack_pop("bytes"))
+    bvA = None
+
+    if z3.is_string_value(valA):
+        lengthA = z3.simplify(z3.Length(valA)).as_long()
+        for i in range(lengthA):
+            if bvA == None:
+                bvA = z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+            else:
+                bvA = z3.Concat(
+                    bvA,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+                )
+
+        max_length = lengthA * 8
+        final_string = z3.StringVal("")
+
+        if max_length == 0:
+            configuration.stack_push( util.Bytes(final_string) )
+        else:
+            finalBV = ~bvA
+            for i in range(7, max_length, 8):
+                final_string = z3.Concat(
+                    z3.StrFromCode(z3.BV2Int(z3.Extract(i,i-7,finalBV))),
+                    final_string
+                )
+            configuration.stack_push( util.Bytes(final_string) )
+        return True
+    else:
+        log.info("Symbolic operand in b~ opcode")
+        return False
+
+
+def getbit_handle(configuration, instruction):
+    """
+    Opcode: 0x53
+    Stack: ..., A, B: uint64 → ..., uint64
+    Bth bit of (byte-array or integer) A. If B is greater than or equal to the bit length of the value (8*byte length), the program fails
+    Availability: v3
+    """
+    valB = z3.simplify(configuration.stack_pop("uint"))
+    valA = configuration.stack_pop("original")
+
+    if valA["type"] == "undefined":
+        log.info("Undefined operand in getbit opcode")
+        return False
+
+    valA = valA["value"]
+    if z3.is_string_value(valA) and z3.is_bv_value(valB):
+        bvA = None
+        lengthA = z3.simplify(z3.Length(valA)).as_long()
+        for i in range(lengthA):
+            if bvA == None:
+                bvA = z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+            else:
+                bvA = z3.Concat(
+                    bvA,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+                )
+        
+        if lengthA * 8 <= z3.simplify(z3.BV2Int(valB)).as_long():
+            log.info("Invalid getbit opcode")
+            return False
+        remainder = z3.simplify(z3.BV2Int(valB) % 8).as_long()
+        quotient = z3.simplify(z3.BV2Int(valB) / 8).as_long()
+        targetBV = z3.Extract(quotient * 8 + 7, quotient * 8, bvA)
+        result = z3.simplify(z3.If( (targetBV & (1 << remainder)) > 0, z3.BitVecVal(1, 64), z3.BitVecVal(0, 64)))
+        configuration.stack_push( util.Uint(result) )
+        return True
+    elif z3.is_bv_value(valA) and z3.is_bv_value(valB):
+        if 64 <= z3.simplify(z3.BV2Int(valB)).as_long():
+            log.info("Invalid getbit opcode")
+            return False
+
+        remainder = z3.simplify(z3.BV2Int(valB) % 8).as_long()
+        quotient = z3.simplify(z3.BV2Int(valB) / 8).as_long()
+        targetBV = z3.Extract(quotient * 8 + 7, quotient * 8, valA)
+        result = z3.simplify(z3.If( (targetBV & (1 << remainder)) > 0, z3.BitVecVal(1, 64), z3.BitVecVal(0, 64)))
+        configuration.stack_push( util.Uint(result) )
+        return True
+    else:
+        log.info("Symbolic operand in getbit opcode")
+        return False
+
+
+def setbit_handle(configuration, instruction):
+    """
+    Opcode: 0x54
+    Stack: ..., A, B: uint64, C: uint64 → ..., any
+    Copy of (byte-array or integer) A, with the Bth bit set to (0 or 1) C. If B is greater than or equal to the bit length of the value (8*byte length), the program fails
+    Availability: v3
+    """
+    valC = z3.simplify(configuration.stack_pop("uint"))
+    valB = z3.simplify(configuration.stack_pop("uint"))
+    valA = configuration.stack_pop("original")
+
+    if valA["type"] == "undefined":
+        log.info("Undefined operand in setbit opcode")
+        return False
+
+    valA = valA["value"]
+    if z3.is_string_value(valA) and z3.is_bv_value(valB):
+        bvA = None
+        lengthA = z3.simplify(z3.Length(valA)).as_long()
+        for i in range(lengthA):
+            if bvA == None:
+                bvA = z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+            else:
+                bvA = z3.Concat(
+                    bvA,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+                )
+        
+        if lengthA * 8 <= z3.simplify(z3.BV2Int(valB)).as_long():
+            log.info("Invalid setbit opcode")
+            return False
+        remainder = z3.simplify(z3.BV2Int(valB) % 8).as_long()
+        quotient = z3.simplify(z3.BV2Int(valB) / 8).as_long()
+        targetBV = z3.Extract(quotient * 8 + 7, quotient * 8, bvA)
+        resultBV = targetBV | (1 << (7 - remainder))
+
+        result = z3.Concat(
+            z3.SubString(valA, 0, quotient),
+            z3.StrFromCode(z3.BV2Int(resultBV)),
+            z3.SubString(valA, quotient+1, z3.Length(valA)-quotient),
+        )
+
+        configuration.stack_push( util.Bytes(result) )
+        return True
+    elif z3.is_bv_value(valA) and z3.is_bv_value(valB):
+        if 64 <= z3.simplify(z3.BV2Int(valB)).as_long():
+            log.info("Invalid setbit opcode")
+            return False
+
+        remainder = z3.simplify(z3.BV2Int(valB) % 8).as_long()
+        quotient = z3.simplify(z3.BV2Int(valB) / 8).as_long()
+        targetBV = z3.Extract(quotient * 8 + 7, quotient * 8, valA)
+        resultBV = targetBV | (1 << remainder)
+
+        if quotient > 0:
+            result = z3.Concat(
+                z3.Extract(63, (quotient+1)*8, valA),
+                resultBV,
+                z3.Extract(quotient * 8 - 1, 0, valA),
+            )
+        else:
+            result = z3.Concat(
+                z3.Extract(63, (quotient+1)*8, valA),
+                resultBV
+            )
+
+        configuration.stack_push( util.Uint(result) )
+        return True
+    else:
+        log.info("Symbolic operand in setbit opcode")
+        return False
+
+
+
+def bitlen_handle(configuration, instruction):
+    """
+    Opcode: 0x93
+    Stack: ..., A → ..., uint64
+    The highest set bit in A. If A is a byte-array, it is interpreted as a big-endian unsigned integer. bitlen of 0 is 0, bitlen of 8 is 4
+    Availability: v4
+    """
+    valA = configuration.stack_pop("original")
+
+    if valA["type"] == "undefined":
+        log.info("Undefined operand in bitlen opcode")
+        return False
+
+    valA = valA["value"]
+    if z3.is_string_value(valA):
+        bvA = None
+        lengthA = z3.simplify(z3.Length(valA)).as_long()
+        for i in range(lengthA):
+            if bvA == None:
+                bvA = z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+            else:
+                bvA = z3.Concat(
+                    bvA,
+                    z3.Int2BV(z3.StrToCode(z3.SubString(valA, i, 1)) ,8)
+                )
+        if bvA == None:
+            configuration.stack_push( util.Uint(z3.BitVecVal(0 ,64)) )
+        else:
+            value = z3.simplify(z3.BV2Int(bvA)).as_long()
+            if value == 0:
+                configuration.stack_push( util.Uint(z3.BitVecVal(0 ,64)) )
+            else:
+                for i in reversed(range(0, lengthA * 8)):
+                    if value / (2 ** i) >= 1:
+                        configuration.stack_push( util.Uint(z3.BitVecVal(i+1 ,64)) )
+                        break
+        return True
+
+    elif z3.is_bv_value(valA):
+        value = z3.simplify(z3.BV2Int(valA)).as_long()
+        if value == 0:
+            configuration.stack_push( util.Uint(z3.BitVecVal(0 ,64)) )
+        else:
+            for i in reversed(range(0, 64)):
+                if value / (2 ** i) >= 1:
+                    configuration.stack_push( util.Uint(z3.BitVecVal(i+1 ,64)) )
+                    break
+        return True
+    else:
+        log.info("Symbolic operand in bitlen opcode")
+        return False
+
+
+def select_handle(configuration, instruction):
+    """
+    Opcode: 0x4d
+    Stack: ..., A, B, C: uint64 → ..., A or B
+    selects one of two values based on top-of-stack: B if C != 0, else A
+    Availability: v3
+    """
+    valC = configuration.stack_pop("uint")
+    valB = configuration.stack_pop("original")
+    valA = configuration.stack_pop("original")
+
+    if valA["type"] != valB["type"]:
+        # Z3 cannot handle different type values in the if statement
+        log.info("Different operand type of select opcode")
+        return False
+    
+    result = z3.If(valC != 0, valB["value"], valA["value"])
+    configuration.stack_push( util.Uint(result) )
+    return True
+
+
+def itxn_handle(configuration, instruction):
+    """
+    Opcode: 0xb4 {uint8 transaction field index}
+    Stack: ... → ..., any
+    field F of the last inner transaction
+    Availability: v5
+    Mode: Application
+    """
+
+    param0 = instruction["params"][0]
+
+    if param0 not in runtime.itxn_field:
+        log.info("Invalid itxn opcode")
+        return False
+
+    configuration.stack_push( runtime.itxn_field[param0] )
+    return True
+
+
+def itxna_handle(configuration, instruction):
+    """
+    Opcode: 0xb5 {uint8 transaction field index} {uint8 transaction field array index}
+    Stack: ... → ..., any
+    Ith value of the array field F of the last inner transaction
+    Availability: v5
+    Mode: Application
+    """
+
+    param0 = instruction["params"][0]
+
+    if param0 not in runtime.itxn_field:
+        log.info("Invalid itxna opcode")
+        return False
+
+    configuration.stack_push( runtime.itxn_field[param0] )
+    return True
 
 
 def internel_jump(configuration, instruction):
