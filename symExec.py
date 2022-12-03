@@ -184,10 +184,14 @@ def format_instructions():
         if instruction["type"] == "int":
             instruction["params"] = [opcodes.get_string_constant(instruction["params"][0])]
 
+
+# Currently we use pattern matching to detect the validator.
+# TODO: solve the symbolic variables for more accurate detection.
 def include_app():
     file_content = open(setting.SOURCE_FILENAME, 'r').read()
     app_index = -1
     app_id = -1
+    global_state = None
 
     result = re.search("gtxn ([0-9]+) ApplicationID\nintc_([0-9]).*\n==", file_content)
     if result != None:
@@ -206,7 +210,7 @@ def include_app():
 
     if app_index == -1 and app_id == -1:
         log.info("App does not exists")
-        return
+        return None
         
     if app_id == -1:
         try:
@@ -214,18 +218,21 @@ def include_app():
             app_id = int(intcblock[app_index])
         except:
             log.info("Fail to parse intcblock")
-            return
+            return None
 
     try:
-        try:
-            # Get the latest version
-            approval_file_name, global_state = util.read_app_info(app_id)
-        except:
+        # Get the latest version
+        approval_file_name, global_state = util.read_app_info(app_id, force = False)
+
+        if approval_file_name == None:
+            log.info("App does not exists: {}".format(app_id))
+            log.info("Try to include the historical version")
+
             # Get the historical version if the app is deleted
             approval_file_name = util.get_app(app_id)
     except:
-        log.info("App does not exists: {}".format(app_id))
-        return
+        log.info("Failed to include the validator")
+        return None
     app_content = open(approval_file_name, 'r').read()
     if not file_content.endswith("return"):
         file_content += "\nreturn"
@@ -244,7 +251,7 @@ def include_app():
         print("Include appID: {}".format(app_id), flush=True)
         setting.SOURCE_FILENAME = tmp.name
         print("Recombined File:", tmp.name)
-    return
+    return global_state
     
 
 def initialize_symbolic_environment():
@@ -252,8 +259,19 @@ def initialize_symbolic_environment():
     initial_configuration = Configuration()
     if setting.IS_LOGIC_SIGNATURE:
         runtime.lsig_address = util.get_lsig_address(open(setting.SOURCE_FILENAME, 'r').read())
+    
+    # Include the code of the validator in signature mode
     if setting.INCLUDE_APP:
-        include_app()
+        global_state = include_app()
+        if global_state != None and setting.LOAD_STATE == True:
+            for key in global_state:
+                if global_state[key]["type"] == "uint":
+                    initial_configuration.global_state_return_uint = z3.Store(initial_configuration.global_state_return_uint, 
+                                                    z3.StringVal(key), global_state[key]["value"])
+                if global_state[key]["type"] == "bytes":
+                    initial_configuration.global_state_return_bytes = z3.Store(initial_configuration.global_state_return_bytes, 
+                                                    z3.StringVal(key), global_state[key]["value"])
+
     if setting.APPLICATION_ID != 0:
         approval_file_name, global_state = util.read_app_info(setting.APPLICATION_ID)
         setting.SOURCE_FILENAME = approval_file_name

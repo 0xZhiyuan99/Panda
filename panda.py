@@ -43,6 +43,8 @@ def main():
     group2.add_argument("-i", "--app-id", type=int, help="App ID of the smart contract", dest="app_id")
 
     parser.add_argument("-ia", "--include-app", action="store_true", help="Take the signature validator into consideration", dest="include_app")
+    parser.add_argument("-ls", "--load-state", action="store_true", help="Load the global state of the validator from the blockchain", dest="load_state")
+
     parser.add_argument("-v", "--version", action="version", version="Panda version 0.0.1")
     parser.add_argument("-db", "--debug", action="store_true", help="Display debug information")
     parser.add_argument("-sl", "--silent", action="store_true", help="Do not display any information")
@@ -64,7 +66,13 @@ def main():
             log.error("Only signature mode supports the argument 'include_app'")
             exit()
         setting.INCLUDE_APP = True
-    
+
+    if args.load_state == True:
+        if setting.IS_SMART_CONTRACT:
+            log.error("Only signature mode supports the argument 'load_state'")
+            exit()
+        setting.LOAD_STATE = True
+
     setting.DEBUG_MODE = True if args.debug else False
     if args.is_smart_contract == True:
         setting.IS_SMART_CONTRACT = True

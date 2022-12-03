@@ -5,6 +5,7 @@ import runtime
 import memory
 import re
 import base64
+import setting
 from .debug import show_backtrace
 
 log = logging.getLogger(__name__)

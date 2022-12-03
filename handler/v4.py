@@ -43,7 +43,7 @@ def sqrt_handle(configuration, instruction):
     """
     val1 = configuration.stack_pop("uint")
     if not z3.is_bv_value(val1):
-        log.debug("sqrt cannot handle dynamic value")
+        log.info("Symbolic value in sqrt opcode")
         return False
     z3_int_val = z3.BitVecVal(int(math.sqrt(val1.as_long())), 64)
     configuration.stack_push( util.Uint(z3_int_val) )
@@ -99,7 +99,7 @@ def bzero_handle(configuration, instruction):
         configuration.stack_push( util.Bytes(result) )
         return True
     else:
-        log.debug("bzero cannot handle dynamic value")
+        log.debug("Symbolic value in bzero opcode")
         return False
 
 
@@ -219,9 +219,12 @@ def expw_handle(configuration, instruction):
     valB = configuration.stack_pop("uint")
     valA = configuration.stack_pop("uint")
     if not z3.is_bv_value(valB):
-        log.debug("Z3 cannot handle non-polynomial problem")
+        log.info("Z3 cannot handle non-polynomial problem")
         return False
-    
+    if not z3.is_bv_value(valA):
+        log.info("Symbolic value in expw opcode")
+        return False
+
     # 0 to the 0th power is mathematically undefined in Z3
     runtime.solver.add( z3.Or(valA != 0, valB != 0) )
     flag = runtime.solver.check()

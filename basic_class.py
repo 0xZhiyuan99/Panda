@@ -133,6 +133,7 @@ class Configuration:
             raise ConfigurationError
         return self.frame_stack.pop()
 
+    # Simplify the symbolic value when it is pushed onto the stack
     def stack_push(self, val):
         self.stack.append(val)
         if val["type"] != "undefined":

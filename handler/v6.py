@@ -103,7 +103,7 @@ def itxnas_handle(configuration, instruction):
     valA = configuration.stack_pop("uint")
 
     if not z3.is_bv_value(valA):
-        log.debug("itxnas cannot handle symbolic value")
+        log.debug("Symbolic value in itxnas opcode")
         return False
 
     if field not in ["ApplicationArgs", "Accounts", "Assets", "Applications", "Logs", "ApprovalProgramPages", "ClearStateProgramPages"]:
@@ -132,7 +132,7 @@ def gitxnas_handle(configuration, instruction):
     valA = configuration.stack_pop("uint")
 
     if not z3.is_bv_value(valA):
-        log.debug("gitxnas cannot handle symbolic value")
+        log.debug("Symbolic value in gitxnas opcode")
         return False
 
     if field not in ["ApplicationArgs", "Accounts", "Assets", "Applications", "Logs", "ApprovalProgramPages", "ClearStateProgramPages"]:

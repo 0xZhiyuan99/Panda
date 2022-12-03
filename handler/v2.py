@@ -256,7 +256,7 @@ def asset_holding_get_handle(configuration, instruction):
     account = configuration.stack_pop("original")
 
     if z3.is_bv_value(assetID):
-        analyzer.check_asset(assetID)
+        analyzer.check_asset(assetID.as_long())
 
     if account["type"] == "undefined":
         log.info("asset_holding_get_handle gets undefined variable")
@@ -458,7 +458,7 @@ def asset_params_get_handle(configuration, instruction):
     val1 = configuration.stack_pop("uint")
 
     if z3.is_bv_value(val1):
-        analyzer.check_asset(val1)
+        analyzer.check_asset(val1.as_long())
 
     if param0 == "AssetTotal":
         dict_result = util.Uint( z3.Select(memory.AssetTotal, val1) )
@@ -548,7 +548,8 @@ def app_local_del_handle(configuration, instruction):
     return True
 
 
-def addw_handle(configuration, instruction):
+# This implementation is deprecated because z3.BV2Int() is inefficient
+def addw_handle_deprecated(configuration, instruction):
     """
     Opcode: 0x1e
     Stack: ..., A: uint64, B: uint64 -> ..., X: uint64, Y: uint64
@@ -566,3 +567,24 @@ def addw_handle(configuration, instruction):
     configuration.stack_push( util.Uint(resultY) )
     return True
 
+
+def addw_handle(configuration, instruction):
+    """
+    Opcode: 0x1e
+    Stack: ..., A: uint64, B: uint64 -> ..., X: uint64, Y: uint64
+    A plus B as a 128-bit result. X is the carry-bit, Y is the low-order 64 bits.
+    Availability: v2
+    """    
+    valB = configuration.stack_pop("uint")
+    valA = configuration.stack_pop("uint")
+
+    valB = z3.Concat(z3.BitVecVal(0, 64), valB)
+    valA = z3.Concat(z3.BitVecVal(0, 64), valA)
+    
+    result = valA + valB    
+    resultY = z3.Extract(63, 0, result)
+    resultX = z3.Extract(127, 64, result)
+
+    configuration.stack_push( util.Uint(resultX) )
+    configuration.stack_push( util.Uint(resultY) )
+    return True

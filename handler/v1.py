@@ -991,7 +991,8 @@ def global_handle(configuration, instruction):
     return True
 
 
-def mulw_handle(configuration, instruction):
+# This implementation is deprecated because z3.BV2Int() is inefficient
+def mulw_handle_deprecated(configuration, instruction):
     """
     Opcode: 0x1d
     Stack: ..., A: uint64, B: uint64 -> ..., X: uint64, Y: uint64
@@ -1016,6 +1017,37 @@ def mulw_handle(configuration, instruction):
     configuration.stack_push( util.Uint(resultX) )
     configuration.stack_push( util.Uint(resultY) )
     return True
+
+
+def mulw_handle(configuration, instruction):
+    """
+    Opcode: 0x1d
+    Stack: ..., A: uint64, B: uint64 -> ..., X: uint64, Y: uint64
+    A times B as a 128-bit result in two uint64s. X is the high 64 bits, Y is the low
+    """    
+    valB = configuration.stack_pop("uint")
+    valA = configuration.stack_pop("uint")
+
+    valB = z3.Concat(z3.BitVecVal(0, 64), valB)
+    valA = z3.Concat(z3.BitVecVal(0, 64), valA)
+
+    runtime.solver.add( z3.BVMulNoOverflow(valA, valB, False) )
+    flag = runtime.solver.check()
+    if flag == z3.unsat:
+        log.info("Integer multiplication overflow detected")
+        return False
+    elif flag == z3.unknown:
+        log.info("Z3 timeout (mulw_handle)")
+        return False
+    
+    result = valA * valB    
+    resultY = z3.Extract(63, 0, result)
+    resultX = z3.Extract(127, 64, result)
+
+    configuration.stack_push( util.Uint(resultX) )
+    configuration.stack_push( util.Uint(resultY) )
+    return True
+
 
 def err_handle(configuration, instruction):
     """

@@ -65,9 +65,9 @@ def decompile(bytecodes):
     return file_name
 
 def get_app(appID):
-    blockchain_connection = psycopg2.connect(database="algorand", 
-                                            user="algorand", 
-                                            password="algorand", 
+    blockchain_connection = psycopg2.connect(database=setting.ALGO_DB, 
+                                            user=setting.ALGO_USER, 
+                                            password=setting.ALGO_PWD, 
                                             host=setting.ALGO_HOST, 
                                             port=setting.ALGO_PORT,
                                             keepalives=1,
@@ -86,7 +86,7 @@ def get_app(appID):
     return decompile(app_data)
 
 # Use the Algorand SDK to obtain application info
-def read_app_info(app_id):
+def read_app_info(app_id, force = True):
     global_state = {}
     try:
         app_info = setting.algod_client.application_info(app_id)
@@ -94,8 +94,12 @@ def read_app_info(app_id):
         log.error("Connect to algod server failed")
         exit(runtime.CONNECT_TO_ALGOD_SERVER_FAILED)
     except AlgodHTTPError:
-        log.error("App ID does not exists")
-        exit(runtime.CONNECT_TO_ALGOD_SERVER_FAILED)
+        if force == False:
+            log.info("App ID does not exists")
+            return None, None
+        else:
+            log.error("App ID does not exists")
+            exit(runtime.CONNECT_TO_ALGOD_SERVER_FAILED)
     app_state = app_info['params']['global-state'] if "global-state" in app_info['params'] else []
     approval_program = app_info['params']['approval-program']
     for item in app_state:

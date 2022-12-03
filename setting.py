@@ -1,22 +1,20 @@
 from algosdk.v2client import algod
 
 #### PLEASE SET THESE VARIABLES MANUALLY! ####
-#algod_address = "http://localhost:8080"
-#algod_token = "a10bb2385b5f59e6faea30a71d1ec373547fc84b639209d89a23fe7109542d86"
-algod_address = "http://localhost:4001"
-algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-#algod_address = "http://47.93.240.23:2398"
-#algod_token = "0e3db4752c9669a6da25d99aafa662801f71f8bbbe39842545fc025b14a3b39c"
+algod_address = "http://39.106.32.178:43588"
+algod_token = "38813a6a351f19dfee478e732eb8d6176fe9d7b1882b662205b370b55f34ada3"
+#algod_address = "http://localhost:4001"
+#algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 algod_client = algod.AlgodClient(algod_token, algod_address)
 
 DB_PATH = './db/'
-ALGO_DB = "algorand"
+ALGO_DB = "postgres"
 ALGO_USER = "algorand"
 ALGO_PWD = "daige@@1999"
-ALGO_HOST = "127.0.0.1"
-ALGO_PORT = "5432"
+ALGO_HOST = "39.106.32.178"
+ALGO_PORT = "57124"
 
-PROCESS_COUNT = 40
+PROCESS_COUNT = 64
 WORKLOAD = 10
 ##############################################
 
@@ -54,3 +52,6 @@ MAX_STACK_DEPTH = 1000
 
 # Take the signature validator into consideration
 INCLUDE_APP = False
+
+# Take the global state of the validator as concrete value
+LOAD_STATE = False

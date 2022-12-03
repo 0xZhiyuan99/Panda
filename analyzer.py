@@ -4,6 +4,7 @@ import z3
 import logging
 import registry.application
 import registry.signature
+import registry.parser
 
 log = logging.getLogger(__name__)
 
@@ -31,15 +32,22 @@ vulnerable_asset_duplicate_record = []
 
 def check_asset(asset_id):
     try:
-        app_info = setting.algod_client.asset_info(asset_id)
+        asset_id = int(asset_id)
+    except:
+        log.critical("Invalid asset ID")
+        exit(runtime.INVALID_ASSET_ID)
+
+    try:
+        asset_info = setting.algod_client.asset_info(asset_id)
     except:
         log.info("Asset ID does not exist")
         return
-    if "clawback" in app_info["params"] and "clawback" not in vulnerable_asset_duplicate_record:
-        vulnerable_asset_record.append("\033[1;33;47m[Medium] The asset\'s clawback address is set: AssetID {: <18}".format(asset_id))
+
+    if "clawback" in asset_info["params"] and "clawback" not in vulnerable_asset_duplicate_record:
+        vulnerable_asset_record.append("\033[1;33;47m[Medium] The asset\'s clawback address is set: AssetID {:<18}".format(str(asset_id)))
         vulnerable_asset_duplicate_record.append("clawback")
-    if "freeze" in app_info["params"]and "freeze" not in vulnerable_asset_duplicate_record:
-        vulnerable_asset_record.append("\033[1;33;47m[Medium] The asset\'s freeze address is set: AssetID {: <20}".format(asset_id))
+    if "freeze" in asset_info["params"]and "freeze" not in vulnerable_asset_duplicate_record:
+        vulnerable_asset_record.append("\033[1;33;47m[Medium] The asset\'s freeze address is set: AssetID {:<20}".format(str(asset_id)))
         vulnerable_asset_duplicate_record.append("freeze")
 
 
@@ -56,8 +64,10 @@ def vulnerable_asset(configuration):
         return
     
     for index in gtxn_list:
-        if registry.is_constrained_var("gtxn_XferAsset[{}]".format(index)) == True:
-            check_asset(z3.simplify(result.__getitem__(index)))
+        if registry.parser.is_constrained_var("gtxn_XferAsset[{}]".format(index)) == True:
+            asset_id = z3.simplify(result.__getitem__(index))
+            if z3.is_bv_value(asset_id):
+                check_asset(asset_id.as_long())
 
 def run(configuration):
     #runtime.solver.display()
