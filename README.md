@@ -65,6 +65,9 @@ optional arguments:
                         Timeout for symbolic execution (second)
 ```
 
+[![Screen Shot][images/screenshot.png]]
+The tool will output the vulnerabilities in the smart contract and the corresponding backtrace.
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
