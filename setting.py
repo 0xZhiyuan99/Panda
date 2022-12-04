@@ -13,11 +13,11 @@ ALGO_USER = "algorand"
 ALGO_PWD = "daige@@1999"
 ALGO_HOST = "39.96.213.29"
 ALGO_PORT = "57124"
-
-PROCESS_COUNT = 64
-WORKLOAD = 10
 ##############################################
 
+# Used for large-scale evaluation
+PROCESS_COUNT = 64
+WORKLOAD = 10
 
 sender_address = "\x50" * 32
 
