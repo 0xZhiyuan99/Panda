@@ -34,7 +34,8 @@ This is a research project. We developed a symbolic execution based tool to auto
 <!-- USAGE EXAMPLES -->
 ## Usage
 ```
-usage: panda.py [-h] (-sc | -lsig | -aid ASSET_ID | -tt) [-s SOURCE_FILENAME | -i APP_ID] [-ia] [-ls] [-v] [-db] [-sl] [-dl BLOCK_SEARCH_DEPTH] [-cl BLOCK_ACCESS_COUNT] [-zt Z3_TIMEOUT] [-gt GLOBAL_TIMEOUT]
+usage: panda.py [-h] (-sc | -lsig | -aid ASSET_ID | -tt) [-s SOURCE_FILENAME | -i APP_ID] [-ia] [-ls] [-v] [-db] [-sl]
+                [-dl BLOCK_SEARCH_DEPTH] [-cl BLOCK_ACCESS_COUNT] [-zt Z3_TIMEOUT] [-gt GLOBAL_TIMEOUT]
 
 optional arguments:
   -h, --help            show this help message and exit
