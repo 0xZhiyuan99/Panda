@@ -67,7 +67,7 @@ def force_clear_state_vulnerability(configuration):
                                         z3.Select(memory.gtxn_OnCompletion, z3.BitVec("GroupIndex", 64)) == 2) )  # CloseOut
                 
                 if runtime.solver.satisfy(new_constraints) == z3.sat:
-                    print("local_user:", local_user)
+                    print("\033[1;32;47mOther local user: {}\033[0m".format(local_user))
                     return True
 
     return False
@@ -98,7 +98,7 @@ def unchecked_payment_receiver_vulnerability(configuration):
 
             if runtime.solver.satisfy(current_constraint) == z3.sat:
                 if not is_constrained_var("gtxn_Receiver[{}]".format(index)):
-                    print("payment{}: {}".format(gtxn_list, index))
+                    print("\033[1;32;47mUnchecked payment receiver {}: {}\033[0m".format(gtxn_list, index))
                     return True
     return False
 
@@ -126,7 +126,7 @@ def unchecked_asset_receiver_vulnerability(configuration):
 
             if runtime.solver.satisfy(current_constraint) == z3.sat:
                 if not is_constrained_var("gtxn_AssetReceiver[{}]".format(index)):
-                    print("asset{}: {}".format(gtxn_list, index))
+                    print("\033[1;32;47mUnchecked asset receiver {}: {}\033[0m".format(gtxn_list, index))
                     return True
     return False
 

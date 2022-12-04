@@ -30,7 +30,7 @@ def unchecked_transaction_fee_in_lsig(configuration):
                                     )
 
                 if runtime.solver.satisfy(current_constraint) == z3.sat:
-                    print("unchecked_transaction_fee index:", index)
+                    print("\033[1;33;47mUnchecked transaction fee index: {}\033[0m".format(index))
                     return True
         return False
 
@@ -66,7 +66,7 @@ def unchecked_RekeyTo_in_lsig(configuration):
                                     z3.Select(memory.gtxn_AssetCloseTo, index) == z3.StringVal( "\x00" * 32 ) )
                 
                     if runtime.solver.satisfy(current_constraint) == z3.sat:
-                        print("unchecked_RekeyTo index:", index)
+                        print("\033[1;32;47mUnchecked RekeyTo index: {}\033[0m".format(index))
                         return True
             return False
     else:
@@ -123,7 +123,7 @@ def unchecked_CloseRemainderTo_in_lsig(configuration):
                                 z3.BitVec("GroupIndex", 64) == index )
 
                 if runtime.solver.satisfy(current_constraint) == z3.sat:
-                    print("unchecked_CloseRemainderTo index:", index)
+                    print("\033[1;32;47mUnchecked CloseRemainderTo index: {}\033[0m".format(index))
                     return True
         return False
 
@@ -168,11 +168,14 @@ def unchecked_AssetCloseTo_in_lsig(configuration):
             if is_constrained_var("gtxn_AssetCloseTo[{}]".format(index)) == False:
                 current_constraint = z3.And(z3.Select(memory.gtxn_TypeEnum, index) == 4,
                                 z3.Select(memory.gtxn_Type, index) == z3.StringVal( "axfer" ),
-                                z3.Select(memory.gtxn_Sender, index) == z3.StringVal( runtime.lsig_address ),
-                                z3.BitVec("GroupIndex", 64) == index )
+                                z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( runtime.lsig_address ),
+                                z3.BitVec("GroupIndex", 64) == index,
+
+                                # Exclude the Asset Accept Transaction and Asset Clawback Transaction
+                                z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x00" * 32 ) )
 
                 if runtime.solver.satisfy(current_constraint) == z3.sat:
-                    print("unchecked_AssetCloseTo index:", index)
+                    print("\033[1;32;47mUnchecked AssetCloseTo index: {}\033[0m".format(index))
                     return True
         return False
 

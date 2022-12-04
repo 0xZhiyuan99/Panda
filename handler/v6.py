@@ -4,6 +4,7 @@ import util
 import runtime
 import memory
 import math
+import random
 
 log = logging.getLogger(__name__)
 
@@ -59,8 +60,11 @@ def gitxn_handle(configuration, instruction):
     field = instruction["params"][1]
 
     if field not in runtime.itxn_field[group]:
-        log.info("Invalid gitxn opcode")
-        return False
+        if field in ["CreatedAssetID", "CreatedApplicationID"]:
+            runtime.itxn_field[group][field] = util.Uint( z3.BitVecVal(int(random.random()*1000000000), 64) )
+        else:
+            log.info("Unsupport field in itxn opcode")
+            return False
 
     configuration.stack_push( runtime.itxn_field[group][field] )
     return True

@@ -3,6 +3,7 @@ import z3
 import util
 import runtime
 import memory
+import random
 
 log = logging.getLogger(__name__)
 
@@ -42,8 +43,11 @@ def itxn_handle(configuration, instruction):
 
     param0 = instruction["params"][0]
     if param0 not in runtime.itxn_field[runtime.itxn_index]:
-        log.info("Unsupport field in itxn opcode")
-        return False
+        if param0 in ["CreatedAssetID", "CreatedApplicationID"]:
+            runtime.itxn_field[runtime.itxn_index][param0] = util.Uint( z3.BitVecVal(int(random.random()*1000000000), 64) )
+        else:
+            log.info("Unsupport field in itxn opcode")
+            return False
 
     configuration.stack_push( runtime.itxn_field[runtime.itxn_index][param0] )
     return True

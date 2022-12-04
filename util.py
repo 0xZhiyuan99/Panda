@@ -123,8 +123,10 @@ def get_lsig_address(teal_program):
         programstr = response['result']
         program = base64.decodebytes(programstr.encode())
         lsig = transaction.LogicSig(program)
+        print("Signature Address: ", lsig.address())
         return decode_address(lsig.address()).decode("Latin-1")
     except:
+        log.info("Failed to fetch signature account address")
         return "\x00" * 32
 
 if __name__ == '__main__':

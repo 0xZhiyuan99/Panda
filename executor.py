@@ -5,8 +5,9 @@ import setting
 import opcodes
 import handler.v2
 import memory
-
 from basic_class import ConfigurationError
+
+show_clear_state_message = False
 
 log = logging.getLogger(__name__)
 
@@ -75,6 +76,8 @@ def clear_state_constraint():
 
 
 def symbolic_execute_block(configuration):
+    global show_clear_state_message
+    
     current_block = runtime.vertices[configuration.current_block_address]
     runtime.block_search_record.append( (current_block.start_address, current_block.end_address) )
     current_block.access_count += 1
@@ -133,10 +136,12 @@ def symbolic_execute_block(configuration):
                     # Check if the validator can be bypassed through calling the clear state program.
                     # This is because the failure of the clear state transaction will only cause this transaction to be reverted, 
                     # and other transactions in the atomic transaction group can still be successfully executed.
-                    if clear_state_constraint():
-                        handler.v2.return_handle(configuration, None)
-                        leave_block(current_block)
-                        return
+                    if clear_state_constraint() and show_clear_state_message == False:
+                        show_clear_state_message = True
+                        print("\033[1;32;47mValidator may be bypassed through clear state transaction\033[0m")
+                        #handler.v2.return_handle(configuration, None)
+                        #leave_block(current_block)
+                        #return
                     
                     configuration.app_area = True
             

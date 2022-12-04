@@ -299,8 +299,6 @@ def analysis_entry_point():
     executor.symbolic_execute_block(initial_configuration)
 
 def run():
-    if setting.PARALLEL:
-        z3.set_param('parallel.enable', True)
     with Timeout(sec=setting.GLOBAL_TIMEOUT):
         analysis_entry_point()
     runtime.end_process()
