@@ -118,12 +118,14 @@ def read_app_info(app_id, force = True):
 
 
 def get_lsig_address(teal_program):
-    response = setting.algod_client.compile(teal_program)
-    programstr = response['result']
-    program = base64.decodebytes(programstr.encode())
-    lsig = transaction.LogicSig(program)
-    return decode_address(lsig.address()).decode("Latin-1")
-
+    try:
+        response = setting.algod_client.compile(teal_program)
+        programstr = response['result']
+        program = base64.decodebytes(programstr.encode())
+        lsig = transaction.LogicSig(program)
+        return decode_address(lsig.address()).decode("Latin-1")
+    except:
+        return "\x00" * 32
 
 if __name__ == '__main__':
     app_info = setting.algod_client.asset_info(150)

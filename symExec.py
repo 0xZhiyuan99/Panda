@@ -50,14 +50,15 @@ def parse_instructions():
             token = token.strip()
 
             if "//" in token:
-                byte_match = re.match("byte \"(.*)\"", token)
-                pushbytes_match = re.match("pushbytes \"(.*)\"", token)
+                byte_match = re.match("^(byte \".*\")", token)
+                pushbytes_match = re.match("^(pushbytes \".*\")", token)
                 if byte_match != None:
                     message = token.split(byte_match.group(1))[1]
                 elif pushbytes_match != None:
                     message = token.split(pushbytes_match.group(1))[1]
                 else:
                     message = token
+                
                 if "//" in message:
                     comment = message.split("//")[1]
                     token = token.split("//" + comment)[0].strip()
@@ -90,7 +91,7 @@ def parse_instructions():
             if runtime.app_call_group_index == -1:
                 # Check whether each opcode is legal
                 if opcodes.params_number(opcode_type) != len(params) and opcodes.params_number(opcode_type) != -1:
-                    log.error("Opcode parameter numbers mismatch at line {}".format(line_number))
+                    log.error("Opcode ({}) parameter numbers mismatch at line {}".format(opcode_type, line_number))
                     exit(runtime.PARSE_INSTRUCTIONS_FAILED)
                 if setting.IS_SMART_CONTRACT and not opcodes.support_application_mode(opcode_type):
                     log.error("Opcode does not support application mode at line {}".format(line_number))
@@ -298,6 +299,8 @@ def analysis_entry_point():
     executor.symbolic_execute_block(initial_configuration)
 
 def run():
+    if setting.PARALLEL:
+        z3.set_param('parallel.enable', True)
     with Timeout(sec=setting.GLOBAL_TIMEOUT):
         analysis_entry_point()
     runtime.end_process()

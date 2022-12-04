@@ -8,7 +8,14 @@ log = logging.getLogger(__name__)
 
 def int_handle(configuration, instruction):
     # Similar to pushint
-    param0 = int(instruction["params"][0])
+    param0 = instruction["params"][0]
+    if param0.startswith("0x"):
+        param0 = int(param0[2:],16)
+    else:
+        param0 = int(param0)
+    if int(param0) >= 2 ** 64:
+        log.error("Invalid int opcode")
+        exit(runtime.INVALID_INTCBLOCK)
     result = z3.BitVecVal(param0, 64)
     configuration.stack_push( util.Uint(result) )
     return True

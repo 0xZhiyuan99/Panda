@@ -19,17 +19,17 @@ def unchecked_transaction_fee_in_lsig(configuration):
             if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
                 return False
 
-        flag = runtime.solver.satisfy(constraint)
-        if flag == z3.sat:
+        if runtime.solver.satisfy(constraint) == z3.sat:
             return True
 
         for index in gtxn_index_list:
             if is_constrained_var("gtxn_Fee[{}]".format(index)) == False:
-                current_constraint = z3.And(z3.Select(memory.gtxn_Sender, index) == z3.StringVal( runtime.lsig_address ),
-                                    z3.BitVec("GroupIndex", 64) == index )
+                current_constraint = z3.And(
+                                        z3.Select(memory.gtxn_Sender, index) == z3.StringVal( runtime.lsig_address ),
+                                        z3.BitVec("GroupIndex", 64) == index
+                                    )
 
-                flag = runtime.solver.satisfy(current_constraint)
-                if flag == z3.sat:
+                if runtime.solver.satisfy(current_constraint) == z3.sat:
                     print("unchecked_transaction_fee index:", index)
                     return True
         return False
@@ -45,13 +45,8 @@ def unchecked_RekeyTo_in_lsig(configuration):
         else:
             current_constraint = z3.And(z3.Select(memory.gtxn_CloseRemainderTo, z3.BitVec("GroupIndex", 64)) == z3.StringVal( "\x00" * 32 ),
                                     z3.Select(memory.gtxn_AssetCloseTo, z3.BitVec("GroupIndex", 64)) == z3.StringVal( "\x00" * 32 ) )
-            flag = runtime.solver.satisfy(current_constraint)
-            if flag == z3.unsat:
+            if runtime.solver.satisfy(current_constraint) != z3.sat:
                 return False
-            elif flag == z3.unknown:
-                log.info("Z3 timeout")
-                return False
-
 
             gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
             constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
@@ -60,8 +55,7 @@ def unchecked_RekeyTo_in_lsig(configuration):
                 if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
                     return False
 
-            flag = runtime.solver.satisfy(constraint)
-            if flag == z3.sat:
+            if runtime.solver.satisfy(constraint) == z3.sat:
                 return True
 
             for index in gtxn_index_list:
@@ -71,8 +65,7 @@ def unchecked_RekeyTo_in_lsig(configuration):
                                     z3.Select(memory.gtxn_CloseRemainderTo, index) == z3.StringVal( "\x00" * 32 ),
                                     z3.Select(memory.gtxn_AssetCloseTo, index) == z3.StringVal( "\x00" * 32 ) )
                 
-                    flag = runtime.solver.satisfy(current_constraint)
-                    if flag == z3.sat:
+                    if runtime.solver.satisfy(current_constraint) == z3.sat:
                         print("unchecked_RekeyTo index:", index)
                         return True
             return False
@@ -87,19 +80,17 @@ def unchecked_CloseRemainderTo_in_lsig(configuration):
     else:
         current_constraint = z3.And(z3.Select(memory.gtxn_TypeEnum, z3.BitVec("GroupIndex", 64)) == 1,
                                 z3.Select(memory.gtxn_Type, z3.BitVec("GroupIndex", 64)) == z3.StringVal( "pay" ) )
-        flag = runtime.solver.satisfy(current_constraint)
-        if flag == z3.unsat:
-            return False
-        elif flag == z3.unknown:
-            log.info("Z3 timeout")
+        if runtime.solver.satisfy(current_constraint) != z3.sat:
             return False
 
         # Check the implicit transaction type
-        if is_constrained_var("gtxn_XferAsset[GroupIndex]") == True \
-            or is_constrained_var("gtxn_AssetAmount[GroupIndex]") == True \
-            or is_constrained_var("gtxn_AssetSender[GroupIndex]") == True \
-            or is_constrained_var("gtxn_AssetReceiver[GroupIndex]") == True:
+        if is_payment_transaction("GroupIndex") == False:
             return False
+        #if is_constrained_var("gtxn_XferAsset[GroupIndex]") == True \
+        #    or is_constrained_var("gtxn_AssetAmount[GroupIndex]") == True \
+        #    or is_constrained_var("gtxn_AssetSender[GroupIndex]") == True \
+        #    or is_constrained_var("gtxn_AssetReceiver[GroupIndex]") == True:
+        #    return False
         
         gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
         constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
@@ -108,20 +99,21 @@ def unchecked_CloseRemainderTo_in_lsig(configuration):
             if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
                 return False
 
-        flag = runtime.solver.satisfy(constraint)
-        if flag == z3.sat:
+        if runtime.solver.satisfy(constraint) == z3.sat:
             return True
 
         for index in gtxn_index_list:
 
             # Check the implicit transaction type
-            if is_constrained_var("gtxn_XferAsset[{}]".format(index)) == True \
-                or is_constrained_var("gtxn_AssetAmount[{}]".format(index)) == True \
-                or is_constrained_var("gtxn_AssetSender[{}]".format(index)) == True \
-                or is_constrained_var("gtxn_AssetReceiver[{}]".format(index)) == True \
-                or is_constrained_var("gtxn_ApplicationID[{}]".format(index)) == True \
-                or is_constrained_var("gtxn_OnCompletion[{}]".format(index)) == True:
+            if is_payment_transaction(index) == False:
                 continue
+            #if is_constrained_var("gtxn_XferAsset[{}]".format(index)) == True \
+            #    or is_constrained_var("gtxn_AssetAmount[{}]".format(index)) == True \
+            #    or is_constrained_var("gtxn_AssetSender[{}]".format(index)) == True \
+            #    or is_constrained_var("gtxn_AssetReceiver[{}]".format(index)) == True \
+            #    or is_constrained_var("gtxn_ApplicationID[{}]".format(index)) == True \
+            #    or is_constrained_var("gtxn_OnCompletion[{}]".format(index)) == True:
+            #    continue
 
 
             if is_constrained_var("gtxn_CloseRemainderTo[{}]".format(index)) == False:
@@ -130,8 +122,7 @@ def unchecked_CloseRemainderTo_in_lsig(configuration):
                                 z3.Select(memory.gtxn_Sender, index) == z3.StringVal( runtime.lsig_address ),
                                 z3.BitVec("GroupIndex", 64) == index )
 
-                flag = runtime.solver.satisfy(current_constraint)
-                if flag == z3.sat:
+                if runtime.solver.satisfy(current_constraint) == z3.sat:
                     print("unchecked_CloseRemainderTo index:", index)
                     return True
         return False
@@ -143,18 +134,15 @@ def unchecked_AssetCloseTo_in_lsig(configuration):
     else:
         current_constraint = z3.And(z3.Select(memory.gtxn_TypeEnum, z3.BitVec("GroupIndex", 64)) == 4,
                                 z3.Select(memory.gtxn_Type, z3.BitVec("GroupIndex", 64)) == z3.StringVal( "axfer" ) )
-        flag = runtime.solver.satisfy(current_constraint)
-        if flag == z3.unsat:
-            return False
-        elif flag == z3.unknown:
-            log.info("Z3 timeout")
+        if runtime.solver.satisfy(current_constraint) != z3.sat:
             return False
 
-        
         # Check the implicit transaction type
-        if is_constrained_var("gtxn_Amount[GroupIndex]") == True \
-            or is_constrained_var("gtxn_Receiver[GroupIndex]") == True:
+        if is_asset_transfer_transaction("GroupIndex") == False:
             return False
+        #if is_constrained_var("gtxn_Amount[GroupIndex]") == True \
+        #    or is_constrained_var("gtxn_Receiver[GroupIndex]") == True:
+        #    return False
 
         gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
         constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
@@ -163,18 +151,19 @@ def unchecked_AssetCloseTo_in_lsig(configuration):
             if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
                 return False
         
-        flag = runtime.solver.satisfy(constraint)
-        if flag == z3.sat:
+        if runtime.solver.satisfy(constraint) == z3.sat:
             return True
         
         for index in gtxn_index_list:
 
             # Check the implicit transaction type
-            if is_constrained_var("gtxn_Amount[{}]".format(index)) == True \
-                or is_constrained_var("gtxn_Receiver[{}]".format(index)) == True \
-                or is_constrained_var("gtxn_ApplicationID[{}]".format(index)) == True \
-                or is_constrained_var("gtxn_OnCompletion[{}]".format(index)) == True:
+            if is_asset_transfer_transaction(index) == False:
                 continue
+            #if is_constrained_var("gtxn_Amount[{}]".format(index)) == True \
+            #    or is_constrained_var("gtxn_Receiver[{}]".format(index)) == True \
+            #    or is_constrained_var("gtxn_ApplicationID[{}]".format(index)) == True \
+            #    or is_constrained_var("gtxn_OnCompletion[{}]".format(index)) == True:
+            #    continue
 
             if is_constrained_var("gtxn_AssetCloseTo[{}]".format(index)) == False:
                 current_constraint = z3.And(z3.Select(memory.gtxn_TypeEnum, index) == 4,
@@ -182,8 +171,7 @@ def unchecked_AssetCloseTo_in_lsig(configuration):
                                 z3.Select(memory.gtxn_Sender, index) == z3.StringVal( runtime.lsig_address ),
                                 z3.BitVec("GroupIndex", 64) == index )
 
-                flag = runtime.solver.satisfy(current_constraint)
-                if flag == z3.sat:
+                if runtime.solver.satisfy(current_constraint) == z3.sat:
                     print("unchecked_AssetCloseTo index:", index)
                     return True
         return False

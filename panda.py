@@ -5,6 +5,7 @@ import symExec
 import os.path
 import runtime
 import os
+import analyzer
 
 log = logging.getLogger(__name__)
 
@@ -36,6 +37,7 @@ def main():
     group1 = parser.add_mutually_exclusive_group(required=True)
     group1.add_argument("-sc", "--smart-contract", action="store_true", help="The input file is a smart contract", dest="is_smart_contract")
     group1.add_argument("-lsig", "--logic-signature", action="store_true", help="The input file is a logic signature", dest="is_logic_signature")
+    group1.add_argument("-aid", "--asset-id", type=int, help="The asset ID to be checked", dest="asset_id")
     group1.add_argument("-tt", "--test", action="store_true", help="Run test scripts")
 
     group2 = parser.add_mutually_exclusive_group(required=False)
@@ -53,6 +55,7 @@ def main():
 
     parser.add_argument("-zt", "--z3-timeout", type=int, help="Timeout for Z3 (millisecond)", dest="z3_timeout")
     parser.add_argument("-gt", "--global-timeout", type=int, help="Timeout for symbolic execution (second)", dest="global_timeout")
+    parser.add_argument("-p", "--parallel", action="store_true", help="spawn a number of worker threads proportional to the number of available CPU cores to apply cube and conquer solving on the goal.", dest="parallel")
 
     args = parser.parse_args()
     if args.test == True:
@@ -61,6 +64,10 @@ def main():
         os.system("python3 ./contract_test.py")
         exit()
 
+    if args.asset_id:
+        analyzer.check_asset(int(args.asset_id))
+        runtime.end_process()
+    
     if args.include_app == True:
         if setting.IS_SMART_CONTRACT:
             log.error("Only signature mode supports the argument 'include_app'")
@@ -91,6 +98,8 @@ def main():
         setting.Z3_TIMEOUT = args.z3_timeout
     if args.global_timeout:
         setting.GLOBAL_TIMEOUT = args.global_timeout
+    if args.parallel:
+        setting.PARALLEL = args.parallel
     if args.app_id:
         setting.APPLICATION_ID = args.app_id
 

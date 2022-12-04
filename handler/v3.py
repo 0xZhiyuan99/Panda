@@ -306,7 +306,16 @@ def getbyte_handle(configuration, instruction):
     """
     val1 = configuration.stack_pop("uint")
     val2 = configuration.stack_pop("bytes")
-    
+
+    runtime.solver.add( z3.BV2Int(val1) < z3.Length(val2))
+    flag = runtime.solver.check()
+    if flag == z3.unsat:
+        log.info("Invalid getbyte opcode")
+        return False
+    elif flag == z3.unknown:
+        log.info("Z3 timeout (getbyte_handle)")
+        return False
+
     result = z3.Int2BV(z3.StrToCode(z3.SubString(val2, z3.BV2Int(val1), 1)), 64)
     configuration.stack_push( util.Uint(result) )
     return True
@@ -321,7 +330,16 @@ def setbyte_handle(configuration, instruction):
     valC = configuration.stack_pop("uint")
     valB = configuration.stack_pop("uint")
     valA = configuration.stack_pop("bytes")
-    
+
+    runtime.solver.add( z3.BV2Int(valB) < z3.Length(valA))
+    flag = runtime.solver.check()
+    if flag == z3.unsat:
+        log.info("Invalid setbyte opcode")
+        return False
+    elif flag == z3.unknown:
+        log.info("Z3 timeout (setbyte_handle)")
+        return False
+
     result = z3.Concat(
         z3.SubString(valA, 0, z3.BV2Int(valB)),
         z3.StrFromCode(z3.BV2Int(valC)),

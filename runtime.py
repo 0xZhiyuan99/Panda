@@ -3,6 +3,10 @@ import z3.z3util
 import os
 import time
 import analyzer
+import logging
+
+log = logging.getLogger(__name__)
+
 
 # define error code
 PARSE_INSTRUCTIONS_FAILED = 101
@@ -61,13 +65,15 @@ class Solver:
 
     def set(self, key, value):
         return self.solver.set(key, value)
-    
+
     def satisfy(self, constraints, output=False):
         self.push()
         self.add(constraints)
         flag = self.check()
         if flag == z3.sat and output == True:
             print(self.model())
+        if flag == z3.unknown:
+            log.info("Z3 timeout")
         self.pop()
         return flag
 
@@ -127,15 +133,25 @@ def end_process():
     end_time = time.time()
     # Output the statistic info
     print("\033[0;30;47m")
-    print("\033[0;30;47m======================================", flush=True)
+    print("======================================", flush=True)
     opcode_kinds = len(set([ x["type"] for x in list(instructions.values())[:-1] ]))
     print('\033[0;34;47mDone Symbolic Execution (Time: {}, Opcodes: {}({}), Leaves Number: {}, Total Path: {}, Feasible Path: {})'.format(
                 format(end_time - start_time, '.2f'), len(instructions)-1, opcode_kinds, leaves_number, 
                 total_path, feasible_path), flush=True )
     for i in range(len(analyzer.message_record)):
         print(analyzer.message_record[i], flush=True)
-        print("\033[0;30;47mBacktrace: ",analyzer.backtrace_record[i], flush=True)
+        print("Backtrace: {}".format(analyzer.backtrace_record[i]), flush=True)
     for i in range(len(analyzer.vulnerable_asset_record)):
         print(analyzer.vulnerable_asset_record[i])
     print("\033[0;30;47m======================================\033[0m\n", flush=True)
     os._exit(0)
+
+def get_group_index(configuration):
+    if app_call_group_index != -1:
+        if configuration.app_area == False:
+            index = z3.BitVec("GroupIndex", 64)
+        else:
+            index = z3.BitVecVal(app_call_group_index, 64)
+    else:
+        index = z3.BitVec("GroupIndex", 64)
+    return index

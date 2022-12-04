@@ -18,7 +18,7 @@ def replace2_handle(configuration, instruction):
     valB = configuration.stack_pop("bytes")
     valA = configuration.stack_pop("bytes")
 
-    runtime.solver.add( z3.Length(valA) >= z3.Length(valB) - z3.IntVal(start) )
+    runtime.solver.add( z3.Length(valA) >= z3.Length(valB) + z3.IntVal(start) )
     flag = runtime.solver.check()
     if flag == z3.unsat:
         log.info("Invalid replace2 opcode")
@@ -48,7 +48,7 @@ def replace3_handle(configuration, instruction):
     valB = configuration.stack_pop("uint")
     valA = configuration.stack_pop("bytes")
 
-    runtime.solver.add( z3.Length(valA) >= z3.BV2Int(valB) - z3.Length(valC) )
+    runtime.solver.add( z3.Length(valA) >= z3.BV2Int(valB) + z3.Length(valC) )
     flag = runtime.solver.check()
     if flag == z3.unsat:
         log.info("Invalid replace3 opcode")

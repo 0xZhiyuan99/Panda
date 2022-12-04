@@ -20,6 +20,9 @@ def intcblock_handle(configuration, instruction):
         if int(uint_param) < 0:
             log.error("Invalid intcblock")
             exit(runtime.INVALID_INTCBLOCK)
+        if int(uint_param) >= 2 ** 64:
+            log.error("Invalid intcblock")
+            exit(runtime.INVALID_INTCBLOCK)
         val = z3.BitVecVal(int(uint_param), 64)
         uint_block.append(val)
     configuration.uint_block = uint_block
@@ -499,7 +502,7 @@ def btoi_handle(configuration, instruction):
              z3_int_val = z3.BitVecVal(0, 64)
         else:
             int_val = int( val1.as_string().replace("\\u{}","\x00").encode("Latin-1").hex(), 16)
-            if int_val > 2 ** 64 - 1:
+            if int_val >= 2 ** 64:
                 log.info("btoi opcode overflow")
                 return False
             z3_int_val = z3.BitVecVal(int(int_val), 64)
@@ -633,13 +636,7 @@ def txn_handle(configuration, instruction):
     field F of current transaction
     """
     param0 = instruction["params"][0]
-    if runtime.app_call_group_index != -1:
-        if configuration.app_area == False:
-            index = z3.BitVec("GroupIndex", 64)
-        else:
-            index = z3.BitVecVal(runtime.app_call_group_index, 64)
-    else:
-        index = z3.BitVec("GroupIndex", 64)
+    index = runtime.get_group_index(configuration)
 
     if param0 == "Sender":
         if setting.IS_SMART_CONTRACT:

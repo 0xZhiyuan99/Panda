@@ -113,6 +113,17 @@ def gload_handle(configuration, instruction):
     """
     param0 = int(instruction["params"][0])
     param1 = int(instruction["params"][1])
+    index = runtime.get_group_index(configuration)
+
+    runtime.solver.add( param0 <= index )
+    flag = runtime.solver.check()
+    if flag == z3.unsat:
+        log.info("Invalid gload opcode")
+        return False
+    elif flag == z3.unknown:
+        log.info("Z3 timeout (gload_handle)")
+        return False
+
     result_dict = util.Undefined({
         "array": "global_scratch_space",
         "op1": z3.BitVecVal( param0, 64 ),
@@ -132,6 +143,17 @@ def gloads_handle(configuration, instruction):
     """
     param0 = int(instruction["params"][0])
     val1 = configuration.stack_pop("uint")
+    index = runtime.get_group_index(configuration)
+
+    runtime.solver.add( val1 <= index )
+    flag = runtime.solver.check()
+    if flag == z3.unsat:
+        log.info("Invalid gloads opcode")
+        return False
+    elif flag == z3.unknown:
+        log.info("Z3 timeout (gloads_handle)")
+        return False
+    
     result_dict = util.Undefined({
         "array": "global_scratch_space",
         "op1": val1,
@@ -149,6 +171,17 @@ def gaid_handle(configuration, instruction):
     Mode: Application
     """
     param0 = int(instruction["params"][0])
+    index = runtime.get_group_index(configuration)
+
+    runtime.solver.add( param0 <= index )
+    flag = runtime.solver.check()
+    if flag == z3.unsat:
+        log.info("Invalid gaid opcode")
+        return False
+    elif flag == z3.unknown:
+        log.info("Z3 timeout (gaid_handle)")
+        return False
+    
     result = z3.Select(memory.gaid, z3.BitVecVal( param0, 64 ))
     configuration.stack_push( util.Uint(result) )
     return True
@@ -163,6 +196,17 @@ def gaids_handle(configuration, instruction):
     Mode: Application
     """
     val1 = configuration.stack_pop("uint")
+    index = runtime.get_group_index(configuration)
+
+    runtime.solver.add( val1 <= index )
+    flag = runtime.solver.check()
+    if flag == z3.unsat:
+        log.info("Invalid gaids opcode")
+        return False
+    elif flag == z3.unknown:
+        log.info("Z3 timeout (gaids_handle)")
+        return False
+
     result = z3.Select(memory.gaid, val1)
     configuration.stack_push( util.Uint(result) )
     return True

@@ -33,6 +33,16 @@ def concat_handle(configuration, instruction):
     val1 = configuration.stack_pop("bytes")
     val2 = configuration.stack_pop("bytes")
     result = val2 + val1
+
+    runtime.solver.add( z3.Length(result) <= 4096 )
+    flag = runtime.solver.check()
+    if flag == z3.unsat:
+        log.info("Invalid concat opcode")
+        return False
+    elif flag == z3.unknown:
+        log.info("Z3 timeout (concat_handle)")
+        return False
+
     configuration.stack_push( util.Bytes(result) )
     return True
 
@@ -126,7 +136,7 @@ def substring3_handle(configuration, instruction):
     str_val = configuration.stack_pop("bytes")
     length =  end - start
     runtime.solver.add( start <= end )
-    runtime.solver.add( z3.BV2Int(end) < z3.Length(str_val) )
+    runtime.solver.add( z3.BV2Int(end) <= z3.Length(str_val) )
     flag = runtime.solver.check()
     if flag == z3.unsat:
         log.info("Invalid substring3 opcode")
@@ -155,7 +165,7 @@ def substring_handle(configuration, instruction):
     if start > end:
         log.info("Invalid substring opcode")
         return False
-    runtime.solver.add( end < z3.Length(val1) )
+    runtime.solver.add( end <= z3.Length(val1) )
 
     flag = runtime.solver.check()
     if flag == z3.unsat:
@@ -179,14 +189,8 @@ def txna_handle(configuration, instruction):
     """
     param0 = instruction["params"][0]
     param1 = z3.BitVecVal( int(instruction["params"][1]), 64 )
+    index = runtime.get_group_index(configuration)
 
-    if runtime.app_call_group_index != -1:
-        if configuration.app_area == False:
-            index = z3.BitVec("GroupIndex", 64)
-        else:
-            index = z3.BitVecVal(runtime.app_call_group_index, 64)
-    else:
-        index = z3.BitVec("GroupIndex", 64)
 
     if param0 == "ApplicationArgs":
         dict_result = util.Bytes( memory.select_2D_array(memory.gtxna_ApplicationArgs, index, param1) )

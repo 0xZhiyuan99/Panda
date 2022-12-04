@@ -1,6 +1,25 @@
 import z3
 import runtime
-import logging
+
+
+# The transaction fields are specified according to the following specification.
+# https://developer.algorand.org/docs/get-details/transactions/transactions/
+# https://developer.algorand.org/docs/get-details/dapps/avm/teal/opcodes/#txn-f
+
+payment_fields = ["Receiver", "Amount"]
+key_registration_fields = ["VotePk", "SelectionPK", "StateProofPk", "VoteFirst", "VoteLast", "VoteKeyDilution", "Nonparticipation"]
+asset_configuration_fields = ["ConfigAsset", "ConfigAssetTotal", "ConfigAssetDecimals", "ConfigAssetDefaultFrozen",
+"ConfigAssetUnitName", "ConfigAssetName", "ConfigAssetURL", "ConfigAssetMetadataHash", "ConfigAssetManager",
+"ConfigAssetReserve", "ConfigAssetFreeze", "ConfigAssetClawback", "CreatedAssetID"]
+asset_freeze_fields = ["FreezeAsset", "FreezeAssetAccount", "FreezeAssetFrozen"]
+asset_transfer_fields = ["XferAsset", "AssetAmount", "AssetSender", "AssetReceiver"]
+application_call_fields = ["ApplicationID", "OnCompletion", "NumAppArgs", "NumAccounts", "ApprovalProgram", 
+"ClearStateProgram", "NumAssets", "NumApplications", "GlobalNumUint", "GlobalNumByteSlice", "LocalNumUint", 
+"LocalNumByteSlice", "ExtraProgramPages", "NumLogs", "CreatedApplicationID", "LastLog", 
+"NumApprovalProgramPages", "NumClearStateProgramPages"]
+
+all_txn_fields = payment_fields + key_registration_fields + asset_configuration_fields + asset_freeze_fields + asset_transfer_fields + application_call_fields
+
 
 def get_string_var_list(expr, result):
     if z3.is_string_value(expr):
@@ -38,3 +57,17 @@ def is_constrained_var(var):
             return True
     return False
 
+
+def is_payment_transaction(index):
+    check_fields = list(set(all_txn_fields).difference(set(payment_fields)))
+    for field in check_fields:
+        if is_constrained_var("gtxn_{}[{}]".format(field, index)) == True:
+            return False
+    return True
+
+def is_asset_transfer_transaction(index):
+    check_fields = list(set(all_txn_fields).difference(set(asset_transfer_fields)))
+    for field in check_fields:
+        if is_constrained_var("gtxn_{}[{}]".format(field, index)) == True:
+            return False
+    return True

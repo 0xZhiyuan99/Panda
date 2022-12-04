@@ -17,12 +17,9 @@ def arbitrary_update_vulnerability(configuration):
     new_constraints.append( z3.Select(memory.gtxn_OnCompletion, z3.BitVec("GroupIndex", 64)) == 4 ) # UpdateApplication
     new_constraints.append( z3.Select(memory.gtxn_ApplicationID, z3.BitVec("GroupIndex", 64)) != 0 )
 
-    flag = runtime.solver.satisfy(new_constraints)
-    if flag == z3.sat:
+    if runtime.solver.satisfy(new_constraints) == z3.sat:
         return not is_constrained_string(setting.sender_address)
     else:
-        if flag == z3.unknown:
-            log.info("Z3 timeout")
         return False
 
 def arbitrary_delete_vulnerability(configuration):
@@ -33,12 +30,9 @@ def arbitrary_delete_vulnerability(configuration):
     new_constraints.append( z3.Select(memory.gtxn_OnCompletion, z3.BitVec("GroupIndex", 64)) == 5 ) # DeleteApplication
     new_constraints.append( z3.Select(memory.gtxn_ApplicationID, z3.BitVec("GroupIndex", 64)) != 0 )
 
-    flag = runtime.solver.satisfy(new_constraints)
-    if flag == z3.sat:
+    if runtime.solver.satisfy(new_constraints) == z3.sat:
         return not is_constrained_string(setting.sender_address)
     else:
-        if flag == z3.unknown:
-            log.info("Z3 timeout")
         return False
 
 def unchecked_group_size_vulnerability(configuration):
@@ -52,12 +46,9 @@ def unchecked_group_size_vulnerability(configuration):
         new_constraints.append( z3.Select(memory.gtxn_ApplicationID, z3.BitVec("GroupIndex", 64)) != 0 )
         new_constraints.append( z3.Select(memory.gtxn_OnCompletion, z3.BitVec("GroupIndex", 64)) == 0 ) # NoOp
 
-        flag = runtime.solver.satisfy(new_constraints)
-        if flag == z3.sat:
+        if runtime.solver.satisfy(new_constraints) == z3.sat:
             return True
         else:
-            if flag == z3.unknown:
-                log.info("Z3 timeout")
             return False
 
     return False
@@ -75,13 +66,10 @@ def force_clear_state_vulnerability(configuration):
                 new_constraints.append(z3.Or(z3.Select(memory.gtxn_OnCompletion, z3.BitVec("GroupIndex", 64)) == 0,  # NoOp
                                         z3.Select(memory.gtxn_OnCompletion, z3.BitVec("GroupIndex", 64)) == 2) )  # CloseOut
                 
-                flag = runtime.solver.satisfy(new_constraints)
-                if flag == z3.sat:
+                if runtime.solver.satisfy(new_constraints) == z3.sat:
                     print("local_user:", local_user)
                     return True
-                else:
-                    if flag == z3.unknown:
-                        log.info("Z3 timeout")
+
     return False
 
 
@@ -90,13 +78,15 @@ def unchecked_payment_receiver_vulnerability(configuration):
          or configuration.opcode_record["app_local_put"] == True:
         gtxn_list = list(set(configuration.opcode_record["gtxn_index"]))
         for index in gtxn_list:
-            if is_constrained_var("gtxn_XferAsset[{}]".format(index)) == True \
-                or is_constrained_var("gtxn_AssetAmount[{}]".format(index)) == True \
-                or is_constrained_var("gtxn_AssetSender[{}]".format(index)) == True \
-                or is_constrained_var("gtxn_AssetReceiver[{}]".format(index)) == True \
-                or is_constrained_var("gtxn_ApplicationID[{}]".format(index)) == True \
-                or is_constrained_var("gtxn_OnCompletion[{}]".format(index)) == True:
+            if is_payment_transaction(index) == False:
                 continue
+            #if is_constrained_var("gtxn_XferAsset[{}]".format(index)) == True \
+            #    or is_constrained_var("gtxn_AssetAmount[{}]".format(index)) == True \
+            #    or is_constrained_var("gtxn_AssetSender[{}]".format(index)) == True \
+            #    or is_constrained_var("gtxn_AssetReceiver[{}]".format(index)) == True \
+            #    or is_constrained_var("gtxn_ApplicationID[{}]".format(index)) == True \
+            #    or is_constrained_var("gtxn_OnCompletion[{}]".format(index)) == True:
+            #    continue
 
             gtxn_type = z3.Select(memory.gtxn_Type, index)
             gtxn_enum = z3.Select(memory.gtxn_TypeEnum, index)
@@ -106,13 +96,7 @@ def unchecked_payment_receiver_vulnerability(configuration):
                                             gtxn_receiver == z3.StringVal("\xcc" * 32),
                                             z3.Select(memory.gtxn_ApplicationID, z3.BitVec("GroupIndex", 64)) != 0 )
 
-            flag = runtime.solver.satisfy(current_constraint)
-            if flag == z3.unsat:
-                continue
-            else:
-                if flag == z3.unknown:
-                    log.info("Z3 timeout")
-                    continue
+            if runtime.solver.satisfy(current_constraint) == z3.sat:
                 if not is_constrained_var("gtxn_Receiver[{}]".format(index)):
                     print("payment{}: {}".format(gtxn_list, index))
                     return True
@@ -124,12 +108,13 @@ def unchecked_asset_receiver_vulnerability(configuration):
          or configuration.opcode_record["app_local_put"] == True:
         gtxn_list = list(set(configuration.opcode_record["gtxn_index"]))
         for index in gtxn_list:
-
-            if is_constrained_var("gtxn_Amount[{}]".format(index)) == True \
-                or is_constrained_var("gtxn_Receiver[{}]".format(index)) == True \
-                or is_constrained_var("gtxn_ApplicationID[{}]".format(index)) == True \
-                or is_constrained_var("gtxn_OnCompletion[{}]".format(index)) == True:
+            if is_asset_transfer_transaction(index) == False:
                 continue
+            #if is_constrained_var("gtxn_Amount[{}]".format(index)) == True \
+            #    or is_constrained_var("gtxn_Receiver[{}]".format(index)) == True \
+            #    or is_constrained_var("gtxn_ApplicationID[{}]".format(index)) == True \
+            #    or is_constrained_var("gtxn_OnCompletion[{}]".format(index)) == True:
+            #    continue
 
             gtxn_type = z3.Select(memory.gtxn_Type, index)
             gtxn_enum = z3.Select(memory.gtxn_TypeEnum, index)
@@ -139,13 +124,7 @@ def unchecked_asset_receiver_vulnerability(configuration):
                                             gtxn_AssetReceiver == z3.StringVal("\xdd" * 32),
                                             z3.Select(memory.gtxn_ApplicationID, z3.BitVec("GroupIndex", 64)) != 0 )
 
-            flag = runtime.solver.satisfy(current_constraint)
-            if flag == z3.unsat:
-                continue
-            else:
-                if flag == z3.unknown:
-                    log.info("Z3 timeout")
-                    continue
+            if runtime.solver.satisfy(current_constraint) == z3.sat:
                 if not is_constrained_var("gtxn_AssetReceiver[{}]".format(index)):
                     print("asset{}: {}".format(gtxn_list, index))
                     return True
@@ -157,12 +136,9 @@ def time_stamp_dependeceny_vulnerability(configuration):
         new_constraints.append(z3.Select(memory.gtxn_ApplicationID, z3.BitVec("GroupIndex", 64)) != 0)
         new_constraints.append(z3.Select(memory.gtxn_OnCompletion, z3.BitVec("GroupIndex", 64)) == 0) # NoOp
 
-        flag = runtime.solver.satisfy(new_constraints)
-        if flag == z3.sat:
+        if runtime.solver.satisfy(new_constraints) == z3.sat:
             return True
         else:
-            if flag == z3.unknown:
-                log.info("Z3 timeout")
             return False
     else:
         return False

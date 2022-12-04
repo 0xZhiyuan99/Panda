@@ -2,6 +2,7 @@ import runtime
 import setting
 import z3
 import logging
+import memory
 import registry.application
 import registry.signature
 import registry.parser
@@ -10,7 +11,7 @@ log = logging.getLogger(__name__)
 
 
 registry_list = [
-    ("smart signature", registry.signature.unchecked_transaction_fee_in_lsig, "\033[1;33;47m[Medium] Found unchecked transaction fee                                "),
+    ("smart signature", registry.signature.unchecked_transaction_fee_in_lsig, "\033[1;33;47m[Medium] Found an unchecked transaction fee vulnerability               "),
     ("smart signature", registry.signature.unchecked_RekeyTo_in_lsig, "\033[1;31;47m[High]   Found unchecked rekey-to parameter                             "),
     ("smart signature", registry.signature.unchecked_CloseRemainderTo_in_lsig, "\033[1;31;47m[High]   Found unchecked close-remainder-to parameter                   "),
     ("smart signature", registry.signature.unchecked_AssetCloseTo_in_lsig, "\033[1;31;47m[High]   Found unchecked asset-close-to parameter                       "),
@@ -40,7 +41,7 @@ def check_asset(asset_id):
     try:
         asset_info = setting.algod_client.asset_info(asset_id)
     except:
-        log.info("Asset ID does not exist")
+        log.info("Asset ID ({}) does not exist".format(asset_id))
         return
 
     if "clawback" in asset_info["params"] and "clawback" not in vulnerable_asset_duplicate_record:
@@ -65,9 +66,15 @@ def vulnerable_asset(configuration):
     
     for index in gtxn_list:
         if registry.parser.is_constrained_var("gtxn_XferAsset[{}]".format(index)) == True:
-            asset_id = z3.simplify(result.__getitem__(index))
-            if z3.is_bv_value(asset_id):
-                check_asset(asset_id.as_long())
+            
+            # Make sure that the asset ID is a concrete value rather than a symbolic value
+            # The number 10203040 is a randomly selected non-exists asset ID
+            if runtime.solver.satisfy(z3.Select(memory.gtxn_XferAsset, index) == 10203040) == z3.unsat:
+                asset_id = z3.simplify(result.__getitem__(index))
+                if z3.is_bv_value(asset_id):
+                    check_asset(asset_id.as_long())
+
+
 
 def run(configuration):
     #runtime.solver.display()
@@ -99,19 +106,22 @@ def run(configuration):
 
 
 if __name__ == '__main__':
+    print("\033[0;30;47m")
     print('\033[1;31;47m[High]   Found an arbitrary update vulnerability                        ')
     print('\033[1;31;47m[High]   Found an arbitrary deletion vulnerability                      ')
     print('\033[1;31;47m[High]   Found an unchecked payment receiver vulnerability              ')
     print('\033[1;31;47m[High]   Found an unchecked asset receiver vulnerability                ')
-    print('\033[1;33;47m[Medium] The asset\'s clawback address is set: AssetID {: <18}'.format(123))
-    print('\033[1;33;47m[Medium] The asset\'s freeze address is set: AssetID {: <20}'.format(123))
-    print('\033[0;30;47m[Low]    Found an unchecked group size vulnerability                    ')
-    print('\033[0;30;47m[Low]    Found a force clear state vulnerability                        ')
-    print('\033[0;30;47m[Low]    Found a time stamp dependeceny vulnerability                   ')
     print('\033[1;31;47m[High]   Found unchecked rekey-to parameter                             ')
     print('\033[1;31;47m[High]   Found unchecked close-remainder-to parameter                   ')
     print('\033[1;31;47m[High]   Found unchecked asset-close-to parameter                       ')
-    print('\033[1;33;47m[Medium] Found unchecked transaction fee                                ')
+    print('\033[1;33;47m[Medium] The asset\'s clawback address is set: AssetID {: <18}'.format(123))
+    print('\033[1;33;47m[Medium] The asset\'s freeze address is set: AssetID {: <20}'.format(123))
+    print('\033[1;33;47m[Medium] Found an unchecked transaction fee vulnerability               ')
+    print('\033[0;30;47m[Low]    Found an unchecked group size vulnerability                    ')
+    print('\033[0;30;47m[Low]    Found a force clear state vulnerability                        ')
+    print('\033[0;30;47m[Low]    Found a time stamp dependeceny vulnerability                   ')
+    print("\033[0;30;47m")
+
     exit()
     #analyzer.set("timeout", 10000)
     print( z3.simplify(z3.IntVal(2) ** z3.IntVal(64)) )

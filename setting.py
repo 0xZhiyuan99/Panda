@@ -41,6 +41,11 @@ Z3_TIMEOUT = 30000
 # Timeout to run symbolic execution (in secs)
 GLOBAL_TIMEOUT = 900
 
+# By setting parallel.enable=true Z3 will spawn a number of worker threads 
+# proportional to the number of available CPU cores 
+# to apply cube and conquer solving on the goal.
+PARALLEL = False
+
 MAXIMUM_COST = 0
 
 # The type of the input file

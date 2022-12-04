@@ -41,9 +41,8 @@ def itxn_handle(configuration, instruction):
     """
 
     param0 = instruction["params"][0]
-
     if param0 not in runtime.itxn_field[runtime.itxn_index]:
-        log.info("Invalid itxn opcode")
+        log.info("Unsupport field in itxn opcode")
         return False
 
     configuration.stack_push( runtime.itxn_field[runtime.itxn_index][param0] )
@@ -169,14 +168,7 @@ def txnas_handle(configuration, instruction):
     """
     param0 = instruction["params"][0]
     val1 = configuration.stack_pop("uint")
-
-    if runtime.app_call_group_index != -1:
-        if configuration.app_area == False:
-            index = z3.BitVec("GroupIndex", 64)
-        else:
-            index = z3.BitVecVal(runtime.app_call_group_index, 64)
-    else:
-        index = z3.BitVec("GroupIndex", 64)
+    index = runtime.get_group_index(configuration)
 
     if param0 == "ApplicationArgs":
         dict_result = util.Bytes( memory.select_2D_array(memory.gtxna_ApplicationArgs, index, val1) )
@@ -295,6 +287,7 @@ def itxn_begin_handle(configuration, instruction):
             "ClearStateProgramPages": [],
         }
     return True
+
 
 def itxn_field_handle(configuration, instruction):
     """
