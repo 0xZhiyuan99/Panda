@@ -65,7 +65,8 @@ optional arguments:
                         Timeout for symbolic execution (second)
 ```
 
-[![Screen Shot][images/screenshot.png]]
+[![Screen Shot][product-screenshot]](https://github.com/Sun-C0ffee/Panda)
+
 The tool will output the vulnerabilities in the smart contract and the corresponding backtrace.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -98,3 +99,6 @@ Don't forget to give the project a star! Thanks again!
 Distributed under the GPL-3.0 License. See `LICENSE` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+[product-screenshot]: images/screenshot.png
