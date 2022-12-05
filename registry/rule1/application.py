@@ -4,7 +4,7 @@ import setting
 import runtime
 import memory
 import logging
-from .parser import *
+from ..parser import *
 
 log = logging.getLogger(__name__)
 

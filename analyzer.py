@@ -3,8 +3,7 @@ import setting
 import z3
 import logging
 import memory
-import registry.application
-import registry.signature
+import registry
 import registry.parser
 
 log = logging.getLogger(__name__)
