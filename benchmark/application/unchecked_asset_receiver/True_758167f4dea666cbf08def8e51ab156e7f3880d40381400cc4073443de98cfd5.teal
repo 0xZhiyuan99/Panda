@@ -1,0 +1,269 @@
+#pragma version 8
+txn Note
+byte "12345678"
+!=
+b label_2d27ebabf1921204947a47480fc0388ad479e5d9c06f1c5c0ed7e007842edf77
+label_2d27ebabf1921204947a47480fc0388ad479e5d9c06f1c5c0ed7e007842edf77:
+bnz true_label_80c9bcbd23da7a208e98b2d15a165e8d4525cae6acc48f853c06275637939d62
+b false_label_15a2d58b81b6c62456c57ee8bdeccdab43076b7092ba0a450e259cea0db06150
+true_label_80c9bcbd23da7a208e98b2d15a165e8d4525cae6acc48f853c06275637939d62:
+int 3
+int 4
+shl
+int 48
+==
+b true_label_3cc527dc2e8aa595f4e49eee9545db33c3abb42af85d61161ba4033fa068e4db
+false_label_15a2d58b81b6c62456c57ee8bdeccdab43076b7092ba0a450e259cea0db06150:
+int 1
+gaids
+txn GroupIndex
+int 0
+==
+assert
+int 1
+b false_label_c976dcac6f98c512fa9b59e6e3665cd2117163389e78c0b38d2006f5c0eb3281
+true_label_3cc527dc2e8aa595f4e49eee9545db33c3abb42af85d61161ba4033fa068e4db:
+bnz true_label_610b32520a00f432ce0422d8842c7ac809bf844d8e3dab456cac7373497a343a
+b false_label_767b265bde0dbeeef708db5547bcb7292c2cce9be4b11e378e1766bc85a06bd5
+true_label_610b32520a00f432ce0422d8842c7ac809bf844d8e3dab456cac7373497a343a:
+itxn_begin
+int pay
+itxn_field TypeEnum
+int 1234
+app_params_get AppAddress
+itxn_field Receiver
+int 1000000
+itxn_field Amount
+itxn_next
+int appl
+itxn_field TypeEnum
+int 1234
+itxn_field ApplicationID
+int NoOp
+itxn_field OnCompletion
+byte "buy"
+itxn_field ApplicationArgs
+itxn_submit
+int 0
+itxnas ApplicationArgs
+byte "buy"
+==
+b true_label_5bac9326967d2328832bcf46f490a29a3bfc7570ffb8f134424e895bf1ceb835
+false_label_767b265bde0dbeeef708db5547bcb7292c2cce9be4b11e378e1766bc85a06bd5:
+int 1 
+return 
+false_label_c976dcac6f98c512fa9b59e6e3665cd2117163389e78c0b38d2006f5c0eb3281:
+return 
+true_label_5bac9326967d2328832bcf46f490a29a3bfc7570ffb8f134424e895bf1ceb835:
+bnz true_label_411dbfde2999ccd473e578dee9c3a128f74f5c45c5fb1e923315e35ad1190a25
+b false_label_527345610f8f99846a4fd74301ccd310116cc98a56a654c16b72abb78ea680a3
+true_label_411dbfde2999ccd473e578dee9c3a128f74f5c45c5fb1e923315e35ad1190a25:
+int 222
+store 1
+load 1
+int 222
+==
+b true_label_4b45525ca5c66efd8a897266e3a6bc8f71c2fe8aad06d6d69c7b93fd7a228c4f
+false_label_527345610f8f99846a4fd74301ccd310116cc98a56a654c16b72abb78ea680a3:
+int 1 
+return 
+true_label_4b45525ca5c66efd8a897266e3a6bc8f71c2fe8aad06d6d69c7b93fd7a228c4f:
+bnz true_label_6fbe849364f21efb0007efaffac9ba2bf2a50d1e403ea407bab5020661d91fbf
+b false_label_cb0c9a93975687dc99113d54f4b17db5207c819af13ff93a6852bf7cd37b87ee
+true_label_6fbe849364f21efb0007efaffac9ba2bf2a50d1e403ea407bab5020661d91fbf:
+byte "u58g6u"
+byte "h2t"
+b&
+btoi
+int 6304372
+==
+b true_label_50272a9b3b3685193cc37a99af772214397658820084c8fe4665b164d7295f7f
+false_label_cb0c9a93975687dc99113d54f4b17db5207c819af13ff93a6852bf7cd37b87ee:
+int 1 
+return 
+true_label_50272a9b3b3685193cc37a99af772214397658820084c8fe4665b164d7295f7f:
+bnz true_label_4f2b5170661bc931d44f346b4295d55ae4a2dd4cf06f285e927a5d2174c987b4
+b false_label_6c9bb03bf3d69eb1378cc0d2887266d9f9d8f5b154a401a2a46e217c4269ce27
+true_label_4f2b5170661bc931d44f346b4295d55ae4a2dd4cf06f285e927a5d2174c987b4:
+itxn_begin
+int pay
+itxn_field TypeEnum
+int 1234
+app_params_get AppAddress
+itxn_field Receiver
+int 1000000
+itxn_field Amount
+itxn_next
+int appl
+itxn_field TypeEnum
+int 1234
+itxn_field ApplicationID
+int NoOp
+itxn_field OnCompletion
+byte "buy"
+itxn_field ApplicationArgs
+itxn_submit
+gitxn 1 OnCompletion
+int NoOp
+==
+b true_label_2a176c1abcdc867af14ec3625e8c9d562ddf6b09d8aff147dd28ad3431fdb08c
+false_label_6c9bb03bf3d69eb1378cc0d2887266d9f9d8f5b154a401a2a46e217c4269ce27:
+int 1 
+return 
+true_label_2a176c1abcdc867af14ec3625e8c9d562ddf6b09d8aff147dd28ad3431fdb08c:
+bnz true_label_cc34d20fec03490ba63b6b22b6a7f4191ac9a787cf7849c612908569d20e75ee
+b false_label_f566712f6446f0ff1955238b3df057f0b27608b427406b3007ce56fe77d899fd
+true_label_cc34d20fec03490ba63b6b22b6a7f4191ac9a787cf7849c612908569d20e75ee:
+byte "aaskfuk983rukjasjiduasa"
+substring 2 14
+byte "skfuk983rukj"
+==
+b true_label_37891b45dae93a4ed059ec149aef716561efa843f74722f53c6b3b4028fd2a22
+false_label_f566712f6446f0ff1955238b3df057f0b27608b427406b3007ce56fe77d899fd:
+int 1 
+return 
+true_label_37891b45dae93a4ed059ec149aef716561efa843f74722f53c6b3b4028fd2a22:
+bnz true_label_ae2dc6e71931d523c0fb9bdc5a36cfd3d22b749ab1d099688a5beefde9b5112f
+b false_label_f6380328e6f0957a6873780ba50f8291ed9f8543c459321b82d68f24e184d889
+true_label_ae2dc6e71931d523c0fb9bdc5a36cfd3d22b749ab1d099688a5beefde9b5112f:
+int 1234566789
+int 1234566789
+addw
+swap
+pop
+int 2469133578
+==
+b true_label_edbeb0ec8667212dc4bdc82eb92950dd171bc879362314718f3baa04becbc2fc
+false_label_f6380328e6f0957a6873780ba50f8291ed9f8543c459321b82d68f24e184d889:
+int 1 
+return 
+true_label_edbeb0ec8667212dc4bdc82eb92950dd171bc879362314718f3baa04becbc2fc:
+bnz true_label_d495d7ef45facba6cceaf08460dd6ef90b91ce59c6fe71f36b2d0e100da40e44
+b false_label_90c4d2f58034f5fdcafbd8450f9392dc5086bfaf06345bb048887a27adee698c
+true_label_d495d7ef45facba6cceaf08460dd6ef90b91ce59c6fe71f36b2d0e100da40e44:
+int 27
+sqrt
+int 5
+==
+b true_label_8c8d73daf2a5a734a5d6fc754585e046ede6eaabcaa4b85c7878bfc05e6297ec
+false_label_90c4d2f58034f5fdcafbd8450f9392dc5086bfaf06345bb048887a27adee698c:
+int 1 
+return 
+true_label_8c8d73daf2a5a734a5d6fc754585e046ede6eaabcaa4b85c7878bfc05e6297ec:
+bnz true_label_9281d026f3ad6aec72869babee9aece3bf307acefdea37f477035721d136b117
+b false_label_fcb66b66b6a684f15b0fc22663b3a20cb01403c66fb0800ebc895f69a3caae6e
+true_label_9281d026f3ad6aec72869babee9aece3bf307acefdea37f477035721d136b117:
+byte "00000000000"
+byte "KKKKK"
+replace2 4
+byte "0000KKKKK00"
+==
+b true_label_6dbee7511b28e09ba1095579226ec0a59cbdc9eaf47bba6de7e170d3c32f08f5
+false_label_fcb66b66b6a684f15b0fc22663b3a20cb01403c66fb0800ebc895f69a3caae6e:
+int 1 
+return 
+true_label_6dbee7511b28e09ba1095579226ec0a59cbdc9eaf47bba6de7e170d3c32f08f5:
+bnz true_label_9036d545d78f17b0cf053385cc4720eccb77eca0e9a0190ebaf41671836a6071
+b false_label_750192c1eab721fa6817d2b9f4c53dfceb8b47d26f685b57d96aeec43b76769f
+true_label_9036d545d78f17b0cf053385cc4720eccb77eca0e9a0190ebaf41671836a6071:
+int 123
+int 456
+int 718626444912984
+divw
+int 3157342
+==
+b true_label_a2598ea48001f7aff89ce707aa3f9d0df090be1c8cec471ac08712cb26e09fa8
+false_label_750192c1eab721fa6817d2b9f4c53dfceb8b47d26f685b57d96aeec43b76769f:
+int 1 
+return 
+true_label_a2598ea48001f7aff89ce707aa3f9d0df090be1c8cec471ac08712cb26e09fa8:
+bnz true_label_ef6b74557a0fddc577bb3860a1ced15c58ea49ebdf36c5d5138c65992f2920b7
+b false_label_7c1b3cffa94d546f8d3854b546317c7c14eaf1e6018cf4319d69490ef7cb8b1d
+true_label_ef6b74557a0fddc577bb3860a1ced15c58ea49ebdf36c5d5138c65992f2920b7:
+txn OnCompletion
+int 0
+==
+global GroupSize
+int 15
+<=
+&&
+assert
+byte "key"
+byte "value"
+app_global_put
+gtxn 3 AssetReceiver
+global CreatorAddress
+==
+assert
+gtxn 3 AssetAmount
+int 10
+>=
+assert
+gtxn 7 AssetReceiver
+global CreatorAddress
+==
+assert
+gtxn 7 AssetAmount
+int 10
+>=
+assert
+gtxn 4 AssetReceiver
+global CreatorAddress
+==
+assert
+gtxn 4 AssetAmount
+int 10
+>=
+assert
+gtxn 0 AssetAmount
+int 10
+>=
+assert
+gtxn 6 AssetReceiver
+global CreatorAddress
+==
+assert
+gtxn 6 AssetAmount
+int 10
+>=
+assert
+gtxn 5 AssetReceiver
+global CreatorAddress
+==
+assert
+gtxn 5 AssetAmount
+int 10
+>=
+assert
+gtxn 8 AssetReceiver
+global CreatorAddress
+==
+assert
+gtxn 8 AssetAmount
+int 10
+>=
+assert
+gtxn 1 AssetReceiver
+global CreatorAddress
+==
+assert
+gtxn 1 AssetAmount
+int 10
+>=
+assert
+gtxn 2 AssetReceiver
+global CreatorAddress
+==
+assert
+gtxn 2 AssetAmount
+int 10
+>=
+assert
+int 1
+return
+b true_label_138bb8c385a356f9b8490d3753d5f1b29ac719b15e708e9571fe12179cf0596a
+false_label_7c1b3cffa94d546f8d3854b546317c7c14eaf1e6018cf4319d69490ef7cb8b1d:
+int 1 
+return 
+true_label_138bb8c385a356f9b8490d3753d5f1b29ac719b15e708e9571fe12179cf0596a:
+return 
