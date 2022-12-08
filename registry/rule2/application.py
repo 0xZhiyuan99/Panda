@@ -143,3 +143,9 @@ def time_stamp_dependeceny_vulnerability(configuration):
     else:
         return False
 
+
+def symbolic_inner_txn_fee_vulnerability(configuration):
+    if configuration.symbolic_inner_txn_fee == True:
+        return True
+    else:
+        return False

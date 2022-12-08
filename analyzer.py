@@ -21,6 +21,8 @@ registry_list = [
     ("smart contract", registry.application.unchecked_payment_receiver_vulnerability, "\033[1;31;47m[High]   Found an unchecked payment receiver vulnerability              "),
     ("smart contract", registry.application.unchecked_asset_receiver_vulnerability, "\033[1;31;47m[High]   Found an unchecked asset receiver vulnerability                "),
     ("smart contract", registry.application.time_stamp_dependeceny_vulnerability, "\033[0;30;47m[Low]    Found a time stamp dependeceny vulnerability                   "),
+    ("smart contract", registry.application.symbolic_inner_txn_fee_vulnerability, "\033[0;33;47m[Medium]    Found a symbolic inner txn fee vulnerability                "),
+
 ]
 
 vulnerability_record = []

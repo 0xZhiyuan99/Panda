@@ -305,6 +305,10 @@ def itxn_field_handle(configuration, instruction):
     val = configuration.stack_pop("original")
     param0 = instruction["params"][0]
 
+    if param0 == "Fee":
+        if (val["type"] == "uint" and (not z3.is_bv_value(val["value"]))) or val["type"] == "undefined":
+            configuration.symbolic_inner_txn_fee = True
+
     if param0 in ["ApplicationArgs", "Accounts", "Assets", "Applications", "Logs", "ApprovalProgramPages", "ClearStateProgramPages"]:
         runtime.itxn_field[runtime.itxn_index][param0].append(val)
     else:

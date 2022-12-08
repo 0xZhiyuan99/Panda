@@ -74,6 +74,7 @@ class Configuration:
             self.frame_stack = []
             self.proto_arg = []
             self.proto_return = []
+            self.symbolic_inner_txn_fee = False
             self.opcode_record = {
                 "itxn_submit": False,
                 "app_global_put": False,
