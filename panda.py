@@ -55,6 +55,7 @@ def main():
 
     parser.add_argument("-zt", "--z3-timeout", type=int, help="Timeout for Z3 (millisecond)", dest="z3_timeout")
     parser.add_argument("-gt", "--global-timeout", type=int, help="Timeout for symbolic execution (second)", dest="global_timeout")
+    parser.add_argument("-rt", "--rule-set", type=str, help="The detection rule set to be used", dest="rule_set")
 
     args = parser.parse_args()
     if args.test == True:
@@ -99,6 +100,8 @@ def main():
         setting.GLOBAL_TIMEOUT = args.global_timeout
     if args.app_id:
         setting.APPLICATION_ID = args.app_id
+    if args.rule_set:
+        setting.DETECTION_RULE_SET = args.rule_set
 
     runtime.solver.set("timeout", setting.Z3_TIMEOUT)
     

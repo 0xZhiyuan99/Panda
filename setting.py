@@ -12,8 +12,6 @@ ALGO_USER = "algorand"
 ALGO_PWD = "daige@@1999"
 ALGO_HOST = "39.96.213.29"
 ALGO_PORT = "57124"
-
-DETECTION_RULE_SET = "rule1"
 ##############################################
 
 
@@ -59,3 +57,6 @@ INCLUDE_APP = False
 
 # Take the global state of the validator as concrete value
 LOAD_STATE = False
+
+# The default detection rule set to be used
+DETECTION_RULE_SET = "rule1"
