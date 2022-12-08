@@ -132,17 +132,21 @@ lsig_address = None
 def end_process():
     end_time = time.time()
     # Output the statistic info
-    print("\033[0;30;47m")
+    print("\033[0;30;47m", flush=True)
     print("======================================", flush=True)
     opcode_kinds = len(set([ x["type"] for x in list(instructions.values())[:-1] ]))
     print('\033[0;34;47mDone Symbolic Execution (Time: {}, Opcodes: {}({}), Leaves Number: {}, Total Path: {}, Feasible Path: {})'.format(
                 format(end_time - start_time, '.2f'), len(instructions)-1, opcode_kinds, leaves_number, 
                 total_path, feasible_path), flush=True )
+    bug_list = []
     for i in range(len(analyzer.message_record)):
-        print(analyzer.message_record[i], flush=True)
-        print("Backtrace: {}".format(analyzer.backtrace_record[i]), flush=True)
+        output = analyzer.message_record[i] + "\nBacktrace: " + analyzer.backtrace_record[i]
+        bug_list.append(output)
+    bug_list.sort(reverse=True)
+    for bug in bug_list:
+        print(bug, flush=True)
     for i in range(len(analyzer.vulnerable_asset_record)):
-        print(analyzer.vulnerable_asset_record[i])
+        print(analyzer.vulnerable_asset_record[i], flush=True)
     print("\033[0;30;47m======================================\033[0m\n", flush=True)
     os._exit(0)
 
