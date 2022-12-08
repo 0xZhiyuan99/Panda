@@ -128,6 +128,8 @@ def gtxns_handle(configuration, instruction):
         # Arbitrary transaction ID is OK
         dict_result = util.Bytes( z3.StringVal( "HUXPAWEPYZNL2WZXNFL7AZCAFWEHUUP3R2667BFJLFA6YHFLWALA" ) )
     elif param0 == "ApplicationID":
+        if setting.INCLUDE_APP == True and runtime.app_call_group_index != -1:
+            runtime.solver.add(z3.BitVecVal(runtime.app_call_group_index, 64) == val1)
         dict_result = util.Uint( z3.Select(memory.gtxn_ApplicationID, val1) )
     elif param0 == "OnCompletion":
         dict_result = util.Uint( z3.Select(memory.gtxn_OnCompletion, val1) )

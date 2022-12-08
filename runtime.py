@@ -112,7 +112,6 @@ vertices = {}
 version = 0
 
 app_call_group_index = -1
-path_include_app = 0
 
 itxn_field = {}
 itxn_index = 0

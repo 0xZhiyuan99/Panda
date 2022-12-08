@@ -694,6 +694,8 @@ def txn_handle(configuration, instruction):
         # Arbitrary transaction ID is OK
         dict_result = util.Bytes( z3.StringVal( "HUXPAWEPYZNL2WZXNFL7AZCAFWEHUUP3R2667BFJLFA6YHFLWALA" ) )
     elif param0 == "ApplicationID":
+        if setting.INCLUDE_APP == True and runtime.app_call_group_index != -1:
+            runtime.solver.add(z3.BitVecVal(runtime.app_call_group_index, 64) == index)
         dict_result = util.Uint( z3.Select(memory.gtxn_ApplicationID, index) )
     elif param0 == "OnCompletion":
         dict_result = util.Uint( z3.Select(memory.gtxn_OnCompletion, index) )
@@ -855,7 +857,9 @@ def gtxn_handle(configuration, instruction):
         dict_result = util.Bytes( z3.StringVal( "HUXPAWEPYZNL2WZXNFL7AZCAFWEHUUP3R2667BFJLFA6YHFLWALA" ) )
     elif param1 == "ApplicationID":
         if runtime.app_call_group_index != -1 and configuration.app_area == False:
-            runtime.path_include_app = 1
+            configuration.path_include_app = True
+        if setting.INCLUDE_APP == True and runtime.app_call_group_index != -1:
+            runtime.solver.add(z3.BitVecVal(runtime.app_call_group_index, 64) == param0)
         dict_result = util.Uint( z3.Select(memory.gtxn_ApplicationID, param0) )
     elif param1 == "OnCompletion":
         dict_result = util.Uint( z3.Select(memory.gtxn_OnCompletion, param0) )

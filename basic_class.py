@@ -64,6 +64,7 @@ class Configuration:
     def __init__(self, **kwargs):
         if len(kwargs) == 0:
             self.app_area = False
+            self.path_include_app = False
             self.current_block_address = 0
             self.current_block_depth = 0
             self.total_cost = 0

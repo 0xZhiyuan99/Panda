@@ -126,7 +126,7 @@ def symbolic_execute_block(configuration):
             # If the current execution path doesn't contain a call to a validator
             # then stop execution immediately rather than jump to the code in the validator
             if end_instruction["dest_label"] == "app_label":
-                if runtime.path_include_app == 0:
+                if configuration.path_include_app == False:
                     handler.v2.return_handle(configuration, None)
                     # Reach end block
                     leave_block(current_block)
