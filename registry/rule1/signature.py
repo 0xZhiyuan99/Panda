@@ -12,16 +12,34 @@ def unchecked_transaction_fee_in_lsig(configuration):
     if is_constrained_var("gtxn_Fee[GroupIndex]") == True:
         return False
     else:
+        if configuration.app_area == True:
+            if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
+                return False
+        
         gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
         constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
-        
-        #if configuration.app_area == True:
-        #    if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
-        #        return False
-
         if runtime.solver.satisfy(constraint) == z3.sat:
             return True
 
+        check_sender = []
+        for index in gtxn_index_list:
+            if index == runtime.app_call_group_index:
+                continue
+            check_sender.sppend(
+                z3.Or(
+                    z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x00" * 32 ),
+                    z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x06" * 32 )
+                )
+            )
+            check_sender.sppend(
+                z3.Or(
+                    z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( "\x00" * 32 ),
+                    z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( "\x06" * 32 )
+                )
+            )
+        if runtime.solver.satisfy(check_sender) == z3.unsat:
+            return False
+            
         for index in gtxn_index_list:
             if is_constrained_var("gtxn_Fee[{}]".format(index)) == False:
                 current_constraint = z3.And(
@@ -48,13 +66,31 @@ def unchecked_RekeyTo_in_lsig(configuration):
             if runtime.solver.satisfy(current_constraint) != z3.sat:
                 return False
 
+            if configuration.app_area == True:
+                if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
+                    return False
+
+            check_sender = []
+            for index in gtxn_index_list:
+                if index == runtime.app_call_group_index:
+                    continue
+                check_sender.sppend(
+                    z3.Or(
+                        z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x00" * 32 ),
+                        z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x06" * 32 )
+                    )
+                )
+                check_sender.sppend(
+                    z3.Or(
+                        z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( "\x00" * 32 ),
+                        z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( "\x06" * 32 )
+                    )
+                )
+            if runtime.solver.satisfy(check_sender) == z3.unsat:
+                return False
+            
             gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
             constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
-
-            #if configuration.app_area == True:
-            #    if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
-            #        return False
-
             if runtime.solver.satisfy(constraint) == z3.sat:
                 return True
 
@@ -91,14 +127,32 @@ def unchecked_CloseRemainderTo_in_lsig(configuration):
         #    or is_constrained_var("gtxn_AssetSender[GroupIndex]") == True \
         #    or is_constrained_var("gtxn_AssetReceiver[GroupIndex]") == True:
         #    return False
-        
+
+        if configuration.app_area == True:
+            if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
+                return False
+
+        check_sender = []
+        for index in gtxn_index_list:
+            if index == runtime.app_call_group_index:
+                continue
+            check_sender.sppend(
+                z3.Or(
+                    z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x00" * 32 ),
+                    z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x06" * 32 )
+                )
+            )
+            check_sender.sppend(
+                z3.Or(
+                    z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( "\x00" * 32 ),
+                    z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( "\x06" * 32 )
+                )
+            )
+        if runtime.solver.satisfy(check_sender) == z3.unsat:
+            return False
+
         gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
         constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
-
-        #if configuration.app_area == True:
-        #    if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
-        #        return False
-
         if runtime.solver.satisfy(constraint) == z3.sat:
             return True
 
@@ -144,13 +198,31 @@ def unchecked_AssetCloseTo_in_lsig(configuration):
         #    or is_constrained_var("gtxn_Receiver[GroupIndex]") == True:
         #    return False
 
+        if configuration.app_area == True:
+            if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
+                return False
+
+        check_sender = []
+        for index in gtxn_index_list:
+            if index == runtime.app_call_group_index:
+                continue
+            check_sender.sppend(
+                z3.Or(
+                    z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x00" * 32 ),
+                    z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x06" * 32 )
+                )
+            )
+            check_sender.sppend(
+                z3.Or(
+                    z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( "\x00" * 32 ),
+                    z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( "\x06" * 32 )
+                )
+            )
+        if runtime.solver.satisfy(check_sender) == z3.unsat:
+            return False
+    
         gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
         constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
-
-        #if configuration.app_area == True:
-        #    if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
-        #        return False
-        
         if runtime.solver.satisfy(constraint) == z3.sat:
             return True
         
