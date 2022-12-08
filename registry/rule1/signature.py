@@ -20,25 +20,6 @@ def unchecked_transaction_fee_in_lsig(configuration):
         constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
         if runtime.solver.satisfy(constraint) == z3.sat:
             return True
-
-        check_sender = []
-        for index in gtxn_index_list:
-            if index == runtime.app_call_group_index:
-                continue
-            check_sender.append(
-                z3.Or(
-                    z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x00" * 32 ),
-                    z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x06" * 32 )
-                )
-            )
-            check_sender.append(
-                z3.Or(
-                    z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( "\x00" * 32 ),
-                    z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( "\x06" * 32 )
-                )
-            )
-        if runtime.solver.satisfy(check_sender) == z3.unsat:
-            return False
             
         for index in gtxn_index_list:
             if is_constrained_var("gtxn_Fee[{}]".format(index)) == False:
@@ -47,7 +28,7 @@ def unchecked_transaction_fee_in_lsig(configuration):
                                         z3.BitVec("GroupIndex", 64) == index
                                     )
 
-                if runtime.solver.satisfy(current_constraint) == z3.sat:
+                if runtime.solver.satisfy(current_constraint) == z3.sat and check_txn_sender(gtxn_index_list, index):
                     print("\033[1;33;47mUnchecked transaction fee index: {}\033[0m".format(index))
                     return True
         return False
@@ -70,26 +51,7 @@ def unchecked_RekeyTo_in_lsig(configuration):
                 if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
                     return False
 
-            gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
-            check_sender = []
-            for index in gtxn_index_list:
-                if index == runtime.app_call_group_index:
-                    continue
-                check_sender.append(
-                    z3.Or(
-                        z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x00" * 32 ),
-                        z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x06" * 32 )
-                    )
-                )
-                check_sender.append(
-                    z3.Or(
-                        z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( "\x00" * 32 ),
-                        z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( "\x06" * 32 )
-                    )
-                )
-            if runtime.solver.satisfy(check_sender) == z3.unsat:
-                return False
-            
+            gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))            
             constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
             if runtime.solver.satisfy(constraint) == z3.sat:
                 return True
@@ -101,7 +63,7 @@ def unchecked_RekeyTo_in_lsig(configuration):
                                     z3.Select(memory.gtxn_CloseRemainderTo, index) == z3.StringVal( "\x00" * 32 ),
                                     z3.Select(memory.gtxn_AssetCloseTo, index) == z3.StringVal( "\x00" * 32 ) )
                 
-                    if runtime.solver.satisfy(current_constraint) == z3.sat:
+                    if runtime.solver.satisfy(current_constraint) == z3.sat and check_txn_sender(gtxn_index_list, index):
                         print("\033[1;32;47mUnchecked RekeyTo index: {}\033[0m".format(index))
                         return True
             return False
@@ -133,25 +95,6 @@ def unchecked_CloseRemainderTo_in_lsig(configuration):
                 return False
 
         gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
-        check_sender = []
-        for index in gtxn_index_list:
-            if index == runtime.app_call_group_index:
-                continue
-            check_sender.append(
-                z3.Or(
-                    z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x00" * 32 ),
-                    z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x06" * 32 )
-                )
-            )
-            check_sender.append(
-                z3.Or(
-                    z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( "\x00" * 32 ),
-                    z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( "\x06" * 32 )
-                )
-            )
-        if runtime.solver.satisfy(check_sender) == z3.unsat:
-            return False
-
         constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
         if runtime.solver.satisfy(constraint) == z3.sat:
             return True
@@ -176,7 +119,7 @@ def unchecked_CloseRemainderTo_in_lsig(configuration):
                                 z3.Select(memory.gtxn_Sender, index) == z3.StringVal( runtime.lsig_address ),
                                 z3.BitVec("GroupIndex", 64) == index )
 
-                if runtime.solver.satisfy(current_constraint) == z3.sat:
+                if runtime.solver.satisfy(current_constraint) == z3.sat and check_txn_sender(gtxn_index_list, index):
                     print("\033[1;32;47mUnchecked CloseRemainderTo index: {}\033[0m".format(index))
                     return True
         return False
@@ -202,26 +145,7 @@ def unchecked_AssetCloseTo_in_lsig(configuration):
             if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
                 return False
 
-        gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
-        check_sender = []
-        for index in gtxn_index_list:
-            if index == runtime.app_call_group_index:
-                continue
-            check_sender.append(
-                z3.Or(
-                    z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x00" * 32 ),
-                    z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x06" * 32 )
-                )
-            )
-            check_sender.append(
-                z3.Or(
-                    z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( "\x00" * 32 ),
-                    z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( "\x06" * 32 )
-                )
-            )
-        if runtime.solver.satisfy(check_sender) == z3.unsat:
-            return False
-    
+        gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))    
         constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
         if runtime.solver.satisfy(constraint) == z3.sat:
             return True
@@ -246,7 +170,7 @@ def unchecked_AssetCloseTo_in_lsig(configuration):
                                 # Exclude the Asset Accept Transaction and Asset Clawback Transaction
                                 z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x00" * 32 ) )
 
-                if runtime.solver.satisfy(current_constraint) == z3.sat:
+                if runtime.solver.satisfy(current_constraint) == z3.sat and check_txn_sender(gtxn_index_list, index):
                     print("\033[1;32;47mUnchecked AssetCloseTo index: {}\033[0m".format(index))
                     return True
         return False

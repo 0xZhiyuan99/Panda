@@ -1,6 +1,6 @@
 import z3
 import runtime
-
+import memory
 
 # The transaction fields are specified according to the following specification.
 # https://developer.algorand.org/docs/get-details/transactions/transactions/
@@ -71,3 +71,25 @@ def is_asset_transfer_transaction(index):
         if is_constrained_var("gtxn_{}[{}]".format(field, index)) == True:
             return False
     return True
+
+def check_txn_sender(gtxn_index_list, exclude_index):
+    check_sender = []
+    for index in gtxn_index_list:
+        if index == exclude_index:
+            continue
+        check_sender.append(
+            z3.Or(
+                z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x00" * 32 ),
+                z3.Select(memory.gtxn_Sender, index) == z3.StringVal( "\x06" * 32 )
+            )
+        )
+        check_sender.append(
+            z3.Or(
+                z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( "\x00" * 32 ),
+                z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( "\x06" * 32 )
+            )
+        )
+    if runtime.solver.satisfy(check_sender) != z3.sat:
+        return False
+    else:
+        return True
