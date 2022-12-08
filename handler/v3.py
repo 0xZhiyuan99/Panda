@@ -491,7 +491,11 @@ def select_handle(configuration, instruction):
 
     if valA["type"] != valB["type"]:
         # Z3 cannot handle different type values in the if statement
-        log.info("Different operand type of select opcode")
+        log.info("Different operand type in select opcode")
+        return False
+
+    if valA["type"] == "undefined":
+        log.info("Two undefined operands in select opcode")
         return False
     
     result = z3.If(valC != 0, valB["value"], valA["value"])
