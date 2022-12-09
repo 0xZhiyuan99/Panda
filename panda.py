@@ -103,6 +103,7 @@ def main():
     if args.rule_set:
         setting.DETECTION_RULE_SET = args.rule_set
 
+    print("Use detection rule set {}".format(setting.DETECTION_RULE_SET))
     runtime.solver.set("timeout", setting.Z3_TIMEOUT)
     
     logging.basicConfig()
