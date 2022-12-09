@@ -5,6 +5,7 @@ import symExec
 import os.path
 import runtime
 import os
+import registry
 import analyzer
 
 log = logging.getLogger(__name__)
@@ -102,6 +103,22 @@ def main():
         setting.APPLICATION_ID = args.app_id
     if args.rule_set:
         setting.DETECTION_RULE_SET = args.rule_set
+
+    if setting.DETECTION_RULE_SET == "rule1":
+        import registry.rule1.signature as signature
+        import registry.rule1.application as application
+    elif setting.DETECTION_RULE_SET == "rule2":
+        import registry.rule2.signature as signature
+        import registry.rule2.application as application
+    elif setting.DETECTION_RULE_SET == "rule3":
+        import registry.rule3.signature as signature
+        import registry.rule3.application as application
+    else:
+        log.critical("Unknown detection rule set")
+        exit(runtime.UNKNOWN_DETECTION_RULE)
+    registry.application_entry = application
+    registry.signature_entry = signature
+    analyzer.init_registry_list()
 
     print("Use detection rule set {}".format(setting.DETECTION_RULE_SET))
     runtime.solver.set("timeout", setting.Z3_TIMEOUT)
