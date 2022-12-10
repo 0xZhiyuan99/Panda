@@ -19,7 +19,7 @@ vulnerable_asset_duplicate_record = []
 def init_registry_list():
     global registry_list
     registry_list = [
-        ("smart signature", registry.signature_entry.unchecked_transaction_fee_in_lsig, "\033[1;33;47m[Medium] Found an unchecked transaction fee vulnerability"),
+        ("smart signature", registry.signature_entry.unchecked_transaction_fee_in_lsig, "\033[1;33;47m[High] Found an unchecked transaction fee vulnerability"),
         ("smart signature", registry.signature_entry.unchecked_RekeyTo_in_lsig, "\033[1;31;47m[High]   Found unchecked rekey-to parameter"),
         ("smart signature", registry.signature_entry.unchecked_CloseRemainderTo_in_lsig, "\033[1;31;47m[High]   Found unchecked close-remainder-to parameter"),
         ("smart signature", registry.signature_entry.unchecked_AssetCloseTo_in_lsig, "\033[1;31;47m[High]   Found unchecked asset-close-to parameter"),
@@ -27,8 +27,8 @@ def init_registry_list():
         ("smart contract", registry.application_entry.arbitrary_delete_vulnerability, "\033[1;31;47m[High]   Found an arbitrary deletion vulnerability"),
         ("smart contract", registry.application_entry.unchecked_group_size_vulnerability, "\033[0;30;47m[Low]    Found an unchecked group size vulnerability"),
         ("smart contract", registry.application_entry.force_clear_state_vulnerability, "\033[0;30;47m[Low]    Found a force clear state vulnerability"),
-        ("smart contract", registry.application_entry.unchecked_payment_receiver_vulnerability, "\033[1;31;47m[High]   Found an unchecked payment receiver vulnerability"),
-        ("smart contract", registry.application_entry.unchecked_asset_receiver_vulnerability, "\033[1;31;47m[High]   Found an unchecked asset receiver vulnerability"),
+        ("smart contract", registry.application_entry.unchecked_payment_receiver_vulnerability, "\033[1;31;47m[Medium]   Found an unchecked payment receiver vulnerability"),
+        ("smart contract", registry.application_entry.unchecked_asset_receiver_vulnerability, "\033[1;31;47m[Medium]   Found an unchecked asset receiver vulnerability"),
         ("smart contract", registry.application_entry.time_stamp_dependeceny_vulnerability, "\033[0;30;47m[Low]    Found a time stamp dependeceny vulnerability"),
         ("smart contract", registry.application_entry.symbolic_inner_txn_fee_vulnerability, "\033[0;33;47m[Medium]    Found a symbolic inner txn fee vulnerability"),
     ]
@@ -112,14 +112,14 @@ if __name__ == '__main__':
     print("\033[0;30;47m")
     print('\033[1;31;47m[High]   Found an arbitrary update vulnerability')
     print('\033[1;31;47m[High]   Found an arbitrary deletion vulnerability')
-    print('\033[1;31;47m[High]   Found an unchecked payment receiver vulnerability')
-    print('\033[1;31;47m[High]   Found an unchecked asset receiver vulnerability')
+    print('\033[1;31;47m[Medium]   Found an unchecked payment receiver vulnerability')
+    print('\033[1;31;47m[Medium]   Found an unchecked asset receiver vulnerability')
     print('\033[1;31;47m[High]   Found unchecked rekey-to parameter')
     print('\033[1;31;47m[High]   Found unchecked close-remainder-to parameter')
     print('\033[1;31;47m[High]   Found unchecked asset-close-to parameter')
+    print('\033[1;33;47m[High] Found an unchecked transaction fee vulnerability')
     print('\033[1;33;47m[Medium] The asset\'s clawback address is set: AssetID {: <18}'.format(123))
     print('\033[1;33;47m[Medium] The asset\'s freeze address is set: AssetID {: <20}'.format(123))
-    print('\033[1;33;47m[Medium] Found an unchecked transaction fee vulnerability')
     print('\033[0;30;47m[Low]    Found an unchecked group size vulnerability')
     print('\033[0;30;47m[Low]    Found a force clear state vulnerability')
     print('\033[0;30;47m[Low]    Found a time stamp dependeceny vulnerability')
