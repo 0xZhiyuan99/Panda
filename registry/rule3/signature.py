@@ -12,9 +12,6 @@ def unchecked_transaction_fee_in_lsig(configuration):
     if is_constrained_var("gtxn_Fee[GroupIndex]") == True:
         return False
     else:
-        #if configuration.app_area == True:
-        #    if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
-        #        return False
         
         gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
         constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
@@ -47,9 +44,6 @@ def unchecked_RekeyTo_in_lsig(configuration):
             if runtime.solver.satisfy(current_constraint) != z3.sat:
                 return False
 
-            #if configuration.app_area == True:
-            #    if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
-            #        return False
             
             gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
             constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
@@ -84,15 +78,6 @@ def unchecked_CloseRemainderTo_in_lsig(configuration):
         # Check the implicit transaction type
         if is_payment_transaction("GroupIndex") == False:
             return False
-        #if is_constrained_var("gtxn_XferAsset[GroupIndex]") == True \
-        #    or is_constrained_var("gtxn_AssetAmount[GroupIndex]") == True \
-        #    or is_constrained_var("gtxn_AssetSender[GroupIndex]") == True \
-        #    or is_constrained_var("gtxn_AssetReceiver[GroupIndex]") == True:
-        #    return False
-
-        #if configuration.app_area == True:
-        #    if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
-        #        return False
 
         gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
         constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
@@ -104,13 +89,6 @@ def unchecked_CloseRemainderTo_in_lsig(configuration):
             # Check the implicit transaction type
             if is_payment_transaction(index) == False:
                 continue
-            #if is_constrained_var("gtxn_XferAsset[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_AssetAmount[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_AssetSender[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_AssetReceiver[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_ApplicationID[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_OnCompletion[{}]".format(index)) == True:
-            #    continue
 
 
             if is_constrained_var("gtxn_CloseRemainderTo[{}]".format(index)) == False:
@@ -137,13 +115,6 @@ def unchecked_AssetCloseTo_in_lsig(configuration):
         # Check the implicit transaction type
         if is_asset_transfer_transaction("GroupIndex") == False:
             return False
-        #if is_constrained_var("gtxn_Amount[GroupIndex]") == True \
-        #    or is_constrained_var("gtxn_Receiver[GroupIndex]") == True:
-        #    return False
-
-        #if configuration.app_area == True:
-        #    if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
-        #        return False
 
         gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
         constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
@@ -155,11 +126,6 @@ def unchecked_AssetCloseTo_in_lsig(configuration):
             # Check the implicit transaction type
             if is_asset_transfer_transaction(index) == False:
                 continue
-            #if is_constrained_var("gtxn_Amount[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_Receiver[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_ApplicationID[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_OnCompletion[{}]".format(index)) == True:
-            #    continue
 
             if is_constrained_var("gtxn_AssetCloseTo[{}]".format(index)) == False:
                 current_constraint = z3.And(z3.Select(memory.gtxn_TypeEnum, index) == 4,

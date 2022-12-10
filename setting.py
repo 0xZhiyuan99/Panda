@@ -1,7 +1,7 @@
 from algosdk.v2client import algod
 
 #### PLEASE SET THESE VARIABLES MANUALLY! ####
-algod_address = "http://39.96.213.29:43588"
+algod_address = "http://47.94.198.62:43588"
 algod_token = "38813a6a351f19dfee478e732eb8d6176fe9d7b1882b662205b370b55f34ada3"
 #algod_address = "http://localhost:4001"
 #algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -10,7 +10,7 @@ DB_PATH = './db/'
 ALGO_DB = "postgres"
 ALGO_USER = "algorand"
 ALGO_PWD = "daige@@1999"
-ALGO_HOST = "39.96.213.29"
+ALGO_HOST = "47.94.198.62"
 ALGO_PORT = "57124"
 ##############################################
 
