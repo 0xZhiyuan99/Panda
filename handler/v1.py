@@ -949,8 +949,7 @@ def global_handle(configuration, instruction):
     """
     param0 = instruction["params"][0]
     if param0 == "MinTxnFee":
-        runtime.solver.add(z3.BitVec("global_MinTxnFee", 64) >= 1000)
-        dict_result = util.Uint( z3.BitVec("global_MinTxnFee", 64) )
+        dict_result = util.Uint( z3.BitVecVal(1000, 64) )
     elif param0 == "MinBalance":
         runtime.solver.add(z3.BitVec("global_MinBalance", 64) >= 100000)
         dict_result = util.Uint( z3.BitVec("global_MinBalance", 64) )

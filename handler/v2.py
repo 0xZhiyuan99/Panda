@@ -4,7 +4,7 @@ import util
 import runtime
 import memory
 import analyzer
-
+import setting
 
 log = logging.getLogger(__name__)
 
@@ -191,7 +191,6 @@ def txna_handle(configuration, instruction):
     param1 = z3.BitVecVal( int(instruction["params"][1]), 64 )
     index = runtime.get_group_index(configuration)
 
-
     if param0 == "ApplicationArgs":
         dict_result = util.Bytes( memory.select_2D_array(memory.gtxna_ApplicationArgs, index, param1) )
     elif param0 == "Applications":
@@ -199,7 +198,14 @@ def txna_handle(configuration, instruction):
     elif param0 == "Assets":
         dict_result = util.Uint( memory.select_2D_array(memory.gtxna_Assets, index, param1) )
     elif param0 == "Accounts":
-        dict_result = util.Bytes( memory.select_2D_array(memory.gtxna_Accounts, index, param1) )
+        if int(instruction["params"][1]) == 0:
+            if setting.IS_SMART_CONTRACT:
+                # Arbitrary sender address is OK in smart contract
+                dict_result = util.Bytes( z3.StringVal( setting.sender_address ) )
+            else:
+                dict_result = util.Bytes( z3.Select(memory.gtxn_Sender, index) )
+        else:
+            dict_result = util.Bytes( memory.select_2D_array(memory.gtxna_Accounts, index, param1) )
     elif param0 == "Logs":
         dict_result = util.Bytes( memory.select_2D_array(memory.gtxna_Logs, index, param1) )
     elif param0 == "ApprovalProgramPages":
