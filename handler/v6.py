@@ -28,10 +28,13 @@ def acct_params_get_handle(configuration, instruction):
         result = z3.Select(memory.min_balance_array_bytes, val1)
         runtime.solver.add(result >= 100000)
         configuration.stack_push( util.Uint(result) )
-    if param0 == "AcctAuthAddr":
+    elif param0 == "AcctAuthAddr":
         result = z3.Select(memory.AcctAuthAddr_array_bytes, val1)
         configuration.stack_push( util.Bytes(result) )
-
+    else:
+        log.info("Unsupport field in acct_params_get opcode")
+        return False
+    
     configuration.stack_push( util.Uint( z3.BitVecVal(1,64) ))
     return True
 
