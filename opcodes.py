@@ -213,6 +213,17 @@ OPCODES = {
     "frame_dig": [1, 1, 1, 1, handler.v8.frame_dig_handle],
     "frame_bury": [1, 1, 1, 1, handler.v8.frame_bury_handle],
     "switch": [1, 1, 1, -1, handler.basis.internel_jump],
+
+    "pushbytess": [1, 1, 1, -1],
+    "pushints": [1, 1, 1, -1],
+    "match": [1, 1, 1, -1],
+    "box_create": [1, 1, 0, 0],
+    "box_extract": [1, 1, 0, 0],
+    "box_replace": [1, 1, 0, 0],
+    "box_del": [1, 1, 0, 0],
+    "box_len": [1, 1, 0, 0],
+    "box_get": [1, 1, 0, 0],
+    "box_put": [1, 1, 0, 0],
 }
 
 CONSTANTS = {
