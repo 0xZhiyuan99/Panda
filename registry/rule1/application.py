@@ -77,16 +77,17 @@ def unchecked_payment_receiver_vulnerability(configuration):
     if configuration.opcode_record["app_global_put"] == True \
          or configuration.opcode_record["app_local_put"] == True:
         gtxn_list = list(set(configuration.opcode_record["gtxn_index"]))
+
+        group_constraint = z3.BitVec("global_GroupSize", 64) >= 2
+        if runtime.solver.satisfy(group_constraint) != z3.sat:
+            return False
+
         for index in gtxn_list:
             if is_payment_transaction(index) == False:
                 continue
-            #if is_constrained_var("gtxn_XferAsset[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_AssetAmount[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_AssetSender[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_AssetReceiver[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_ApplicationID[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_OnCompletion[{}]".format(index)) == True:
-            #    continue
+
+            if not is_constrained_var("gtxn_Amount[{}]".format(index)):
+                continue
 
             gtxn_type = z3.Select(memory.gtxn_Type, index)
             gtxn_enum = z3.Select(memory.gtxn_TypeEnum, index)
@@ -94,7 +95,8 @@ def unchecked_payment_receiver_vulnerability(configuration):
 
             current_constraint = z3.And(gtxn_type == z3.StringVal("pay"), gtxn_enum == z3.BitVecVal(1, 64),
                                             gtxn_receiver == z3.StringVal("\xcc" * 32),
-                                            z3.Select(memory.gtxn_ApplicationID, z3.BitVec("GroupIndex", 64)) != 0 )
+                                            z3.Select(memory.gtxn_ApplicationID, z3.BitVec("GroupIndex", 64)) != 0,
+                                            )
 
             if runtime.solver.satisfy(current_constraint) == z3.sat:
                 if not is_constrained_var("gtxn_Receiver[{}]".format(index)):
@@ -107,14 +109,18 @@ def unchecked_asset_receiver_vulnerability(configuration):
     if configuration.opcode_record["app_global_put"] == True \
          or configuration.opcode_record["app_local_put"] == True:
         gtxn_list = list(set(configuration.opcode_record["gtxn_index"]))
+
+        group_constraint = z3.BitVec("global_GroupSize", 64) >= 2
+        if runtime.solver.satisfy(group_constraint) != z3.sat:
+            return False
+        
         for index in gtxn_list:
             if is_asset_transfer_transaction(index) == False:
                 continue
-            #if is_constrained_var("gtxn_Amount[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_Receiver[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_ApplicationID[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_OnCompletion[{}]".format(index)) == True:
-            #    continue
+
+            if not is_constrained_var("gtxn_AssetAmount[{}]".format(index)):
+                if not is_constrained_var("gtxn_XferAsset[{}]".format(index)):
+                    continue
 
             gtxn_type = z3.Select(memory.gtxn_Type, index)
             gtxn_enum = z3.Select(memory.gtxn_TypeEnum, index)
