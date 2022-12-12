@@ -13,7 +13,8 @@ def unchecked_transaction_fee_in_lsig(configuration):
         return False
     else:
         if configuration.app_area == True:
-            if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
+            index_string = runtime.get_group_index_string(configuration)
+            if is_constrained_var("gtxn_Sender[{}]".format(index_string)) == True:
                 return False
         
         gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
@@ -48,7 +49,8 @@ def unchecked_RekeyTo_in_lsig(configuration):
                 return False
 
             if configuration.app_area == True:
-                if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
+                index_string = runtime.get_group_index_string(configuration)
+                if is_constrained_var("gtxn_Sender[{}]".format(index_string)) == True:
                     return False
 
             gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))            
@@ -86,7 +88,8 @@ def unchecked_CloseRemainderTo_in_lsig(configuration):
             return False
 
         if configuration.app_area == True:
-            if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
+            index_string = runtime.get_group_index_string(configuration)
+            if is_constrained_var("gtxn_Sender[{}]".format(index_string)) == True:
                 return False
 
         gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
@@ -126,7 +129,8 @@ def unchecked_AssetCloseTo_in_lsig(configuration):
             return False
 
         if configuration.app_area == True:
-            if is_constrained_var("gtxn_Sender[{}]".format(runtime.app_call_group_index)) == True:
+            index_string = runtime.get_group_index_string(configuration)
+            if is_constrained_var("gtxn_Sender[{}]".format(index_string)) == True:
                 return False
 
         gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))    

@@ -209,6 +209,38 @@ def include_app():
         group_index = int(result.group(1))
         app_id = int(result.group(2))
 
+    result = re.search("txn ApplicationID\nintc_([0-9]).*\n==", file_content)
+    if result != None:
+        group_index = -2
+        app_index = int(result.group(1))
+    
+    result = re.search("txn ApplicationID\nintc ([0-9]+).*\n==", file_content)
+    if result != None:
+        group_index = -2
+        app_index = int(result.group(1))
+
+    result = re.search("txn ApplicationID\npushint ([0-9]+).*\n==", file_content)
+    if result != None:
+        group_index = -2
+        app_id = int(result.group(1))
+    
+    result = re.search("gtxns ApplicationID\nintc_([0-9]).*\n==", file_content)
+    if result != None:
+        group_index = -3
+        app_index = int(result.group(1))
+    
+    result = re.search("gtxns ApplicationID\nintc ([0-9]+).*\n==", file_content)
+    if result != None:
+        group_index = -3
+        app_index = int(result.group(1))
+
+    result = re.search("gtxns ApplicationID\npushint ([0-9]+).*\n==", file_content)
+    if result != None:
+        group_index = -3
+        app_id = int(result.group(1))
+
+
+
     if app_index == -1 and app_id == -1:
         log.info("App does not exists")
         return None

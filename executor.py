@@ -62,12 +62,13 @@ def show_backtrace():
     exit()
 
 
-def clear_state_constraint():
+def clear_state_constraint(configuration):
     if runtime.app_call_group_index == -1:
         return False
 
+    index = runtime.get_group_index(configuration)
     new_constraints = []
-    new_constraints.append( z3.Select(memory.gtxn_OnCompletion, z3.BitVecVal(runtime.app_call_group_index, 64)) == 3 ) # ClearState
+    new_constraints.append( z3.Select(memory.gtxn_OnCompletion, index) == 3 ) # ClearState
     flag = runtime.solver.satisfy(new_constraints)
     if flag == z3.sat:
         return True
@@ -136,7 +137,7 @@ def symbolic_execute_block(configuration):
                     # Check if the validator can be bypassed through calling the clear state program.
                     # This is because the failure of the clear state transaction will only cause this transaction to be reverted, 
                     # and other transactions in the atomic transaction group can still be successfully executed.
-                    if clear_state_constraint() and show_clear_state_message == False:
+                    if clear_state_constraint(configuration) and show_clear_state_message == False:
                         show_clear_state_message = True
                         print("\033[1;32;47mValidator may be bypassed through clear state transaction\033[0m")
                         #handler.v2.return_handle(configuration, None)

@@ -32,6 +32,8 @@ UNRECOGNISED_DEFINITION_TYPE = 120
 INVALID_ASSET_ID = 121
 UNKNOWN_DETECTION_RULE = 122
 
+
+
 # A simulator of Z3 solver with additional records
 class Solver:
     def __init__(self):
@@ -150,12 +152,38 @@ def end_process():
     print("\033[0;30;47m======================================\033[0m\n", flush=True)
     os._exit(0)
 
+
 def get_group_index(configuration):
     if app_call_group_index != -1:
-        if configuration.app_area == False:
+        if app_call_group_index == -2:
+            index = z3.BitVec("GroupIndex", 64)
+        if app_call_group_index == -3:      
+            if configuration.app_call_symbolic_index_assigned == False:
+                index = z3.BitVec("GroupIndex", 64)
+            else:     
+                index = configuration.app_call_symbolic_index
+        elif configuration.app_area == False:
             index = z3.BitVec("GroupIndex", 64)
         else:
             index = z3.BitVecVal(app_call_group_index, 64)
     else:
         index = z3.BitVec("GroupIndex", 64)
     return index
+
+def get_group_index_string(configuration):
+    if app_call_group_index != -1:
+        if app_call_group_index == -2:
+            index = "GroupIndex"
+        if app_call_group_index == -3:      
+            if configuration.app_call_symbolic_index_assigned == False:
+                index = "GroupIndex"
+            else:
+                index = str(configuration.app_call_symbolic_index)
+        elif configuration.app_area == False:
+            index = "GroupIndex"
+        else:
+            index = str(app_call_group_index)
+    else:
+        index = "GroupIndex"
+    return index
+
