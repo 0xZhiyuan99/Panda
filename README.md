@@ -35,7 +35,7 @@ This is a research project. We developed a symbolic execution based tool to auto
 ## Usage
 ```
 usage: panda.py [-h] (-sc | -lsig | -aid ASSET_ID | -tt) [-s SOURCE_FILENAME | -i APP_ID] [-ia] [-ls] [-v] [-db] [-sl]
-                [-dl BLOCK_SEARCH_DEPTH] [-cl BLOCK_ACCESS_COUNT] [-zt Z3_TIMEOUT] [-gt GLOBAL_TIMEOUT]
+                [-dl BLOCK_SEARCH_DEPTH] [-cl BLOCK_ACCESS_COUNT] [-zt Z3_TIMEOUT] [-gt GLOBAL_TIMEOUT] [-rs RULE_SET]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -63,6 +63,9 @@ optional arguments:
                         Timeout for Z3 (millisecond)
   -gt GLOBAL_TIMEOUT, --global-timeout GLOBAL_TIMEOUT
                         Timeout for symbolic execution (second)
+  -rs RULE_SET, --rule-set RULE_SET
+                        The detection rule set to be used
+
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -77,25 +80,6 @@ The tool will output the vulnerabilities in the smart contract and the correspon
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
-
-
-<!-- CONTRIBUTING -->
-## Contributing
-
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
