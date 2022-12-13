@@ -1,4 +1,5 @@
 import argparse
+import configparser
 import setting
 import logging
 import symExec
@@ -7,6 +8,7 @@ import runtime
 import os
 import registry
 import analyzer
+from algosdk.v2client import algod
 
 log = logging.getLogger(__name__)
 
@@ -31,8 +33,23 @@ def check_global_parameters():
         return False
     return True
 
+def parse_config():
+    config = configparser.ConfigParser()
+    config.read("config.ini", encoding="utf-8")
+    setting.algod_address = config["algod"]["algod_address"]
+    setting.algod_token = config["algod"]["algod_token"]
+    setting.DB_PATH = config["postgres"]["DB_PATH"]
+    setting.ALGO_DB = config["postgres"]["ALGO_DB"]
+    setting.ALGO_USER = config["postgres"]["ALGO_USER"]
+    setting.ALGO_PWD = config["postgres"]["ALGO_PWD"]
+    setting.ALGO_HOST = config["postgres"]["ALGO_HOST"]
+    setting.ALGO_PORT = config["postgres"]["ALGO_PORT"]
+    setting.algod_client = algod.AlgodClient(setting.algod_token, setting.algod_address)
+
 
 def main():
+    parse_config()
+
     parser = argparse.ArgumentParser()
 
     group1 = parser.add_mutually_exclusive_group(required=True)
