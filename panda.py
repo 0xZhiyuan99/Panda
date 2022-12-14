@@ -160,7 +160,7 @@ if __name__ == '__main__':
 
 # python3 ./panda.py -sc -s test.teal
 # python3 ./panda.py -sc -i 404815323
-# python3 ./panda.py -lsig -ia -s test.teal -rs=rule3
+# python3 ./panda.py -lsig -ia -s test.teal
 # python3 ./panda.py -lsig -s test.teal
 
 # sudo vmhgfs-fuse .host:/ /mnt/ -o allow_other -o uid=1000
