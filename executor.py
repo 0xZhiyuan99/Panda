@@ -132,18 +132,17 @@ def symbolic_execute_block(configuration):
                     # Reach end block
                     leave_block(current_block)
                     return
+                elif setting.BYPASS_VALIDATOR == True and clear_state_constraint(configuration):
+                    handler.v2.return_handle(configuration, None)
+                    leave_block(current_block)
+                    return
                 else:
-
                     # Check if the validator can be bypassed through calling the clear state program.
                     # This is because the failure of the clear state transaction will only cause this transaction to be reverted, 
                     # and other transactions in the atomic transaction group can still be successfully executed.
                     if clear_state_constraint(configuration) and show_clear_state_message == False:
                         show_clear_state_message = True
                         print("\033[1;32;47mValidator may be bypassed through clear state transaction\033[0m")
-                        #handler.v2.return_handle(configuration, None)
-                        #leave_block(current_block)
-                        #return
-                    
                     configuration.app_area = True
             
             target = int(end_instruction["params"][0])

@@ -64,6 +64,7 @@ def main():
 
     parser.add_argument("-ia", "--include-app", action="store_true", help="Take the signature validator into consideration", dest="include_app")
     parser.add_argument("-ls", "--load-state", action="store_true", help="Load the global state of the validator from the blockchain", dest="load_state")
+    parser.add_argument("-bp", "--bypass-validator", action="store_true", help="Bypass the validator if there is no constraint on OnCompletion", dest="bypass_validator")
 
     parser.add_argument("-v", "--version", action="version", version="Panda version 0.0.1")
     parser.add_argument("-db", "--debug", action="store_true", help="Display debug information")
@@ -97,6 +98,13 @@ def main():
             log.error("Only signature mode supports the argument 'load_state'")
             exit()
         setting.LOAD_STATE = True
+
+    if args.bypass_validator == True:
+        if setting.IS_SMART_CONTRACT:
+            log.error("Only signature mode supports the argument 'bypass_validator'")
+            exit()
+        print("Bypass validator mode enabled")
+        setting.BYPASS_VALIDATOR = True
 
     setting.DEBUG_MODE = True if args.debug else False
     if args.is_smart_contract == True:

@@ -52,5 +52,9 @@ INCLUDE_APP = False
 # Take the global state of the validator as concrete value
 LOAD_STATE = False
 
+# Bypass the validator if there is no constraint on OnCompletion
+BYPASS_VALIDATOR = False
+
 # The default detection rule set to be used
 DETECTION_RULE_SET = "rule1"
+
