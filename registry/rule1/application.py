@@ -25,7 +25,7 @@ def arbitrary_update_vulnerability(configuration):
 def arbitrary_delete_vulnerability(configuration):
     if configuration.opcode_record["app_local_get"] == True:
         return False
-    
+
     new_constraints = []
     new_constraints.append( z3.Select(memory.gtxn_OnCompletion, z3.BitVec("GroupIndex", 64)) == 5 ) # DeleteApplication
     new_constraints.append( z3.Select(memory.gtxn_ApplicationID, z3.BitVec("GroupIndex", 64)) != 0 )
@@ -158,5 +158,16 @@ def time_stamp_dependeceny_vulnerability(configuration):
 def symbolic_inner_txn_fee_vulnerability(configuration):
     if configuration.symbolic_inner_txn_fee == True:
         return True
+    else:
+        return False
+
+
+def check_optin(configuration):
+    new_constraints = []
+    new_constraints.append( z3.Select(memory.gtxn_OnCompletion, z3.BitVec("GroupIndex", 64)) == 1 ) # OptIn
+    new_constraints.append( z3.Select(memory.gtxn_ApplicationID, z3.BitVec("GroupIndex", 64)) != 0 )
+
+    if runtime.solver.satisfy(new_constraints) == z3.sat:
+        return not is_constrained_string(setting.sender_address)
     else:
         return False
