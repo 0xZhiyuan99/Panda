@@ -80,13 +80,6 @@ def unchecked_payment_receiver_vulnerability(configuration):
         for index in gtxn_list:
             if is_payment_transaction(index) == False:
                 continue
-            #if is_constrained_var("gtxn_XferAsset[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_AssetAmount[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_AssetSender[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_AssetReceiver[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_ApplicationID[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_OnCompletion[{}]".format(index)) == True:
-            #    continue
 
             gtxn_type = z3.Select(memory.gtxn_Type, index)
             gtxn_enum = z3.Select(memory.gtxn_TypeEnum, index)
@@ -110,11 +103,6 @@ def unchecked_asset_receiver_vulnerability(configuration):
         for index in gtxn_list:
             if is_asset_transfer_transaction(index) == False:
                 continue
-            #if is_constrained_var("gtxn_Amount[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_Receiver[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_ApplicationID[{}]".format(index)) == True \
-            #    or is_constrained_var("gtxn_OnCompletion[{}]".format(index)) == True:
-            #    continue
 
             gtxn_type = z3.Select(memory.gtxn_Type, index)
             gtxn_enum = z3.Select(memory.gtxn_TypeEnum, index)

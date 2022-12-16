@@ -20,7 +20,8 @@ def unchecked_transaction_fee_in_lsig(configuration):
         gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
         constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
         if runtime.solver.satisfy(constraint) == z3.sat:
-            return True
+            if check_txn_sender(gtxn_index_list, 17):            
+                return True
             
         for index in gtxn_index_list:
             if is_constrained_var("gtxn_Fee[{}]".format(index)) == False:
@@ -56,7 +57,8 @@ def unchecked_RekeyTo_in_lsig(configuration):
             gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))            
             constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
             if runtime.solver.satisfy(constraint) == z3.sat:
-                return True
+                if check_txn_sender(gtxn_index_list, 17):            
+                    return True
 
             for index in gtxn_index_list:
                 if is_constrained_var("gtxn_RekeyTo[{}]".format(index)) == False:
@@ -95,8 +97,9 @@ def unchecked_CloseRemainderTo_in_lsig(configuration):
         gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
         constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
         if runtime.solver.satisfy(constraint) == z3.sat:
-            return True
-
+            if check_txn_sender(gtxn_index_list, 17):            
+                return True
+        
         for index in gtxn_index_list:
 
             # Check the implicit transaction type
@@ -136,8 +139,9 @@ def unchecked_AssetCloseTo_in_lsig(configuration):
         gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))    
         constraint = len(gtxn_index_list) < z3.BitVec("global_GroupSize", 64)
         if runtime.solver.satisfy(constraint) == z3.sat:
-            return True
-        
+            if check_txn_sender(gtxn_index_list, 17):            
+                return True
+                
         for index in gtxn_index_list:
 
             # Check the implicit transaction type
