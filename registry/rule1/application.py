@@ -10,6 +10,9 @@ log = logging.getLogger(__name__)
 
 
 def arbitrary_update_vulnerability(configuration):
+    if configuration.symbolic_hash_variable_used == True:
+        return False
+
     if configuration.opcode_record["app_local_get"] == True:
         return False
 
@@ -23,6 +26,9 @@ def arbitrary_update_vulnerability(configuration):
         return False
 
 def arbitrary_delete_vulnerability(configuration):
+    if configuration.symbolic_hash_variable_used == True:
+        return False
+
     if configuration.opcode_record["app_local_get"] == True:
         return False
 
@@ -94,10 +100,8 @@ def unchecked_payment_receiver_vulnerability(configuration):
 
             gtxn_type = z3.Select(memory.gtxn_Type, index)
             gtxn_enum = z3.Select(memory.gtxn_TypeEnum, index)
-            gtxn_receiver = z3.Select(memory.gtxn_Receiver, index)
 
             current_constraint = z3.And(gtxn_type == z3.StringVal("pay"), gtxn_enum == z3.BitVecVal(1, 64),
-                                            #gtxn_receiver == z3.StringVal("\xcc" * 32),
                                             )
 
             if runtime.solver.satisfy(current_constraint) == z3.sat:
@@ -129,10 +133,8 @@ def unchecked_asset_receiver_vulnerability(configuration):
 
             gtxn_type = z3.Select(memory.gtxn_Type, index)
             gtxn_enum = z3.Select(memory.gtxn_TypeEnum, index)
-            gtxn_AssetReceiver = z3.Select(memory.gtxn_AssetReceiver, index)
 
             current_constraint = z3.And(gtxn_type == z3.StringVal("axfer"), gtxn_enum == z3.BitVecVal(4, 64),
-                                            #gtxn_AssetReceiver == z3.StringVal("\xdd" * 32),
                                             )
 
             if runtime.solver.satisfy(current_constraint) == z3.sat:
@@ -163,6 +165,9 @@ def symbolic_inner_txn_fee_vulnerability(configuration):
 
 
 def check_optin(configuration):
+    if configuration.symbolic_hash_variable_used == True:
+        return False
+    
     new_constraints = []
     new_constraints.append( z3.Select(memory.gtxn_OnCompletion, z3.BitVec("GroupIndex", 64)) == 1 ) # OptIn
     new_constraints.append( z3.Select(memory.gtxn_ApplicationID, z3.BitVec("GroupIndex", 64)) != 0 )

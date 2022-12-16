@@ -572,6 +572,7 @@ def sha256_handle(configuration, instruction):
     Stack: ..., A: []byte -> ..., []byte
     SHA256 hash of value A, yields [32]byte
     """
+    configuration.symbolic_hash_variable_used = True
     val1 = configuration.stack_pop("bytes")
     result = z3.String( "sha256({})".format(val1.__str__()) )
 
@@ -587,6 +588,7 @@ def ed25519verify_handle(configuration, instruction):
     Stack: ..., A: []byte, B: []byte, C: []byte -> ..., uint64
     for (data A, signature B, pubkey C) verify the signature of ("ProgData" || program_hash || data) against the pubkey => {0 or 1}
     """
+    configuration.symbolic_hash_variable_used = True
     configuration.stack_pop("bytes")
     configuration.stack_pop("bytes")
     configuration.stack_pop("bytes")
@@ -603,6 +605,7 @@ def keccak256_handle(configuration, instruction):
     Stack: ..., A: []byte -> ..., []byte
     Keccak256 hash of value A, yields [32]byte
     """
+    configuration.symbolic_hash_variable_used = True
     val1 = configuration.stack_pop("bytes")
     result = z3.String( "keccak256({})".format(val1.__str__()) )
 
@@ -618,6 +621,7 @@ def sha512_256_handle(configuration, instruction):
     Stack: ..., A: []byte -> ..., []byte
     SHA512_256 hash of value A, yields [32]byte
     """
+    configuration.symbolic_hash_variable_used = True
     val1 = configuration.stack_pop("bytes")
     result = z3.String( "sha512_256({})".format(val1.__str__()) )
 

@@ -152,6 +152,7 @@ def ecdsa_verify_handle(configuration, instruction):
     for (data A, signature B, C and pubkey D, E) verify the signature of the data against the pubkey => {0 or 1}
     Availability: v5
     """
+    configuration.symbolic_hash_variable_used = True
     configuration.stack_pop("bytes")
     configuration.stack_pop("bytes")
     configuration.stack_pop("bytes")
@@ -434,6 +435,7 @@ def ecdsa_pk_decompress_handle(configuration, instruction):
     decompress pubkey A into components X, Y
     Availability: v5
     """    
+    configuration.symbolic_hash_variable_used = True
     val1 = configuration.stack_pop("bytes")
     resultX = z3.String( "ecdsa_pk_decompress({}_X)".format(val1.__str__()) )
     resultY = z3.String( "ecdsa_pk_decompress({}_Y)".format(val1.__str__()) )
@@ -462,6 +464,7 @@ def ecdsa_pk_recover_handle(configuration, instruction):
     Cost: 2000
     Availability: v5
     """    
+    configuration.symbolic_hash_variable_used = True
     valD = configuration.stack_pop("bytes")
     valC = configuration.stack_pop("bytes")
     valB = configuration.stack_pop("bytes")

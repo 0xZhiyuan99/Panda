@@ -157,7 +157,7 @@ def get_group_index(configuration):
     if app_call_group_index != -1:
         if app_call_group_index == -2:
             index = z3.BitVec("GroupIndex", 64)
-        if app_call_group_index == -3:      
+        elif app_call_group_index == -3:      
             if configuration.app_call_symbolic_index_assigned == False:
                 index = z3.BitVec("GroupIndex", 64)
             elif configuration.app_area == False:
@@ -176,7 +176,7 @@ def get_group_index_string(configuration):
     if app_call_group_index != -1:
         if app_call_group_index == -2:
             index = "GroupIndex"
-        if app_call_group_index == -3:      
+        elif app_call_group_index == -3:      
             if configuration.app_call_symbolic_index_assigned == False:
                 index = "GroupIndex"
             elif configuration.app_area == False:

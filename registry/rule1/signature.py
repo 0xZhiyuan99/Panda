@@ -9,6 +9,9 @@ log = logging.getLogger(__name__)
 
 
 def unchecked_transaction_fee_in_lsig(configuration):
+    if configuration.symbolic_hash_variable_used == True:
+        return False
+    
     if is_constrained_var("gtxn_Fee[GroupIndex]") == True:
         return False
     else:
@@ -38,6 +41,8 @@ def unchecked_transaction_fee_in_lsig(configuration):
 
 
 def unchecked_RekeyTo_in_lsig(configuration):
+    if configuration.symbolic_hash_variable_used == True:
+        return False
 
     # It seems that TEAL version 1 does not support rekey-to
     if runtime.version > 1:
@@ -77,6 +82,9 @@ def unchecked_RekeyTo_in_lsig(configuration):
 
 
 def unchecked_CloseRemainderTo_in_lsig(configuration):
+    if configuration.symbolic_hash_variable_used == True:
+        return False
+
     if is_constrained_var("gtxn_CloseRemainderTo[GroupIndex]") == True:
         return False
     else:
@@ -119,6 +127,9 @@ def unchecked_CloseRemainderTo_in_lsig(configuration):
 
 
 def unchecked_AssetCloseTo_in_lsig(configuration):
+    if configuration.symbolic_hash_variable_used == True:
+        return False
+        
     if is_constrained_var("gtxn_AssetCloseTo[GroupIndex]") == True:
         return False
     else:

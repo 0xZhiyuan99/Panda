@@ -153,6 +153,7 @@ def ed25519verify_bare_handle(configuration, instruction):
     Cost: 1900
     Availability: v7
     """
+    configuration.symbolic_hash_variable_used = True
     configuration.stack_pop("bytes")
     configuration.stack_pop("bytes")
     configuration.stack_pop("bytes")
@@ -168,6 +169,7 @@ def sha3_256_handle(configuration, instruction):
     Cost: 130
     Availability: v7
     """
+    configuration.symbolic_hash_variable_used = True
     val1 = configuration.stack_pop("bytes")
     result = z3.String( "sha3_256({})".format(val1.__str__()) )
 

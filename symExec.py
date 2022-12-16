@@ -194,21 +194,6 @@ def include_app():
     app_id = -1
     global_state = None
 
-    result = re.search("gtxn ([0-9]+) ApplicationID\nintc_([0-9]).*\n==", file_content)
-    if result != None:
-        group_index = int(result.group(1))
-        app_index = int(result.group(2))
-    
-    result = re.search("gtxn ([0-9]+) ApplicationID\nintc ([0-9]+).*\n==", file_content)
-    if result != None:
-        group_index = int(result.group(1))
-        app_index = int(result.group(2))
-
-    result = re.search("gtxn ([0-9]+) ApplicationID\npushint ([0-9]+).*\n==", file_content)
-    if result != None:
-        group_index = int(result.group(1))
-        app_id = int(result.group(2))
-
     result = re.search("txn ApplicationID\nintc_([0-9]).*\n==", file_content)
     if result != None:
         group_index = -2
@@ -239,7 +224,20 @@ def include_app():
         group_index = -3
         app_id = int(result.group(1))
 
+    result = re.search("gtxn ([0-9]+) ApplicationID\nintc_([0-9]).*\n==", file_content)
+    if result != None:
+        group_index = int(result.group(1))
+        app_index = int(result.group(2))
+    
+    result = re.search("gtxn ([0-9]+) ApplicationID\nintc ([0-9]+).*\n==", file_content)
+    if result != None:
+        group_index = int(result.group(1))
+        app_index = int(result.group(2))
 
+    result = re.search("gtxn ([0-9]+) ApplicationID\npushint ([0-9]+).*\n==", file_content)
+    if result != None:
+        group_index = int(result.group(1))
+        app_id = int(result.group(2))
 
     if app_index == -1 and app_id == -1:
         if "ApplicationID" in file_content:

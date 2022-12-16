@@ -78,6 +78,7 @@ class Configuration:
             self.symbolic_inner_txn_fee = False
             self.app_call_symbolic_index = -1
             self.app_call_symbolic_index_assigned = False
+            self.symbolic_hash_variable_used = False
             self.opcode_record = {
                 "itxn_submit": False,
                 "app_global_put": False,
