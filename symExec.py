@@ -242,7 +242,10 @@ def include_app():
 
 
     if app_index == -1 and app_id == -1:
-        log.info("App does not exists")
+        if "ApplicationID" in file_content:
+            log.critical("Validator exists but failed to fetch")
+            exit(runtime.INCLUDE_VALIDATOR_FAILED)
+        log.info("Validator does not exists")
         return None
         
     if app_id == -1:

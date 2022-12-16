@@ -80,7 +80,7 @@ def get_app(appID):
     result = blockchain_cursor.fetchall()
     creator = result[0][0]
     created_at = result[0][1]
-    blockchain_cursor.execute("select txn->'txn'->>'apap' from txn where round={} and typeenum=6 and txn->'txn'->>'snd'='{}'".format(created_at, creator))
+    blockchain_cursor.execute("select txn->'txn'->>'apap' from txn where round={} and typeenum=6 and txn::jsonb->'txn' ? 'apap' and txn->'txn'->>'snd'='{}'".format(created_at, creator))
     app_data = blockchain_cursor.fetchall()[0][0]
     blockchain_connection.close()
     return decompile(app_data)
