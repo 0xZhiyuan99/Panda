@@ -62,12 +62,15 @@ def show_backtrace():
     exit()
 
 
-def clear_state_constraint(configuration):
-    if runtime.app_call_group_index == -1:
+def clear_state_constraint(configuration, condition):
+    if runtime.app_call_group_index >= 0:
+        index = runtime.app_call_group_index
+    elif configuration.app_call_symbolic_index_assigned == True:
+        index = configuration.app_call_symbolic_index
+    else:
         return False
 
-    index = runtime.get_group_index(configuration)
-    new_constraints = []
+    new_constraints = [condition]
     new_constraints.append( z3.Select(memory.gtxn_OnCompletion, index) == 3 ) # ClearState
     flag = runtime.solver.satisfy(new_constraints)
     if flag == z3.sat:
@@ -124,6 +127,10 @@ def symbolic_execute_block(configuration):
         elif end_instruction["type"] == "bnz":
             trace(configuration, end_instruction)
 
+            target = int(end_instruction["params"][0])
+            flag = configuration.stack_pop("uint")
+            cond = (flag != 0)
+
             # If the current execution path doesn't contain a call to a validator
             # then stop execution immediately rather than jump to the code in the validator
             if end_instruction["dest_label"] == "app_label":
@@ -132,7 +139,7 @@ def symbolic_execute_block(configuration):
                     # Reach end block
                     leave_block(current_block)
                     return
-                elif setting.BYPASS_VALIDATOR == True and clear_state_constraint(configuration):
+                elif setting.BYPASS_VALIDATOR == True and clear_state_constraint(configuration, cond):
                     handler.v2.return_handle(configuration, None)
                     leave_block(current_block)
                     return
@@ -140,14 +147,11 @@ def symbolic_execute_block(configuration):
                     # Check if the validator can be bypassed through calling the clear state program.
                     # This is because the failure of the clear state transaction will only cause this transaction to be reverted, 
                     # and other transactions in the atomic transaction group can still be successfully executed.
-                    if clear_state_constraint(configuration) and show_clear_state_message == False:
+                    if clear_state_constraint(configuration, cond) and show_clear_state_message == False:
                         show_clear_state_message = True
                         print("\033[1;32;47mValidator may be bypassed through clear state transaction\033[0m")
                     configuration.app_area = True
             
-            target = int(end_instruction["params"][0])
-            flag = configuration.stack_pop("uint")
-            cond = (flag != 0)
             cond_jump_to_block(configuration, target, cond)
             if current_block.adjacent_block_address != -1:
                 cond_jump_to_block(configuration, current_block.adjacent_block_address, z3.Not(cond))
