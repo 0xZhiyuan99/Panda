@@ -34,8 +34,9 @@ This is a research project. We developed a symbolic execution based tool to auto
 <!-- USAGE EXAMPLES -->
 ## Usage
 ```
-usage: panda.py [-h] (-sc | -lsig | -aid ASSET_ID | -tt) [-s SOURCE_FILENAME | -i APP_ID] [-ia] [-ls] [-v] [-db] [-sl]
-                [-dl BLOCK_SEARCH_DEPTH] [-cl BLOCK_ACCESS_COUNT] [-zt Z3_TIMEOUT] [-gt GLOBAL_TIMEOUT] [-rs RULE_SET]
+usage: panda.py [-h] (-sc | -lsig | -aid ASSET_ID | -tt) [-s SOURCE_FILENAME | -i APP_ID] [-ia] [-ls] [-bp] [-v] [-db]
+                [-sl] [-dl BLOCK_SEARCH_DEPTH] [-cl BLOCK_ACCESS_COUNT] [-zt Z3_TIMEOUT] [-gt GLOBAL_TIMEOUT]
+                [-rs RULE_SET]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -52,6 +53,8 @@ optional arguments:
                         App ID of the smart contract
   -ia, --include-app    Take the signature validator into consideration
   -ls, --load-state     Load the global state of the validator from the blockchain
+  -bp, --bypass-validator
+                        Bypass the validator if there is no constraint on OnCompletion
   -v, --version         show program's version number and exit
   -db, --debug          Display debug information
   -sl, --silent         Do not display any information
@@ -73,7 +76,7 @@ optional arguments:
 
 
 ## Example Output
-The tool will output the vulnerabilities in the smart contract and the corresponding backtrace.
+The tool will output the vulnerabilities in the smart contract and the corresponding execution backtrace.
 
 [![Screen Shot][product-screenshot]](https://github.com/Sun-C0ffee/Panda)
 
