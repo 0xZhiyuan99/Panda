@@ -21,7 +21,7 @@ This is a research project. We developed a symbolic execution based tool to auto
    ```sh
    ./install.sh
    ```
-4. Configure the setting file `setting.py`
+4. Configure the file `config.ini`
 5. Run the tool
    ```sh
    python3 ./panda.py -h
