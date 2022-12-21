@@ -3,6 +3,25 @@ import os
 import txn
 import tempfile
 from contracts import program1, program2, program3, program4, program5, program6, program7, program8, program9, program10
+from algosdk.v2client import algod
+import configparser
+import sys 
+sys.path.append("..")
+import setting
+
+def parse_config():
+    config = configparser.ConfigParser()
+    config.read("config.ini", encoding="utf-8")
+    setting.algod_address = config["algod"]["algod_address"]
+    setting.algod_token = config["algod"]["algod_token"]
+    setting.DB_PATH = config["postgres"]["DB_PATH"]
+    setting.ALGO_DB = config["postgres"]["ALGO_DB"]
+    setting.ALGO_USER = config["postgres"]["ALGO_USER"]
+    setting.ALGO_PWD = config["postgres"]["ALGO_PWD"]
+    setting.ALGO_HOST = config["postgres"]["ALGO_HOST"]
+    setting.ALGO_PORT = config["postgres"]["ALGO_PORT"]
+    setting.algod_client = algod.AlgodClient(setting.algod_token, setting.algod_address)
+
 
 def check_contract(program, total, app_args=[]):
     appID = app.create_app(program, app_args=app_args)
@@ -128,4 +147,5 @@ def main():
 
 
 if __name__ == "__main__":
+    parse_config()
     main()
