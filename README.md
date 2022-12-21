@@ -80,6 +80,7 @@ The tool will output the vulnerabilities in the smart contract and the correspon
 
 [![Screen Shot][product-screenshot]](https://github.com/Sun-C0ffee/Panda)
 
+Note that if the smart signature contains a validator, the tool will combine the smart signature and the validator into a single file and then runs symbolic execution based on the combined file. The output backtrace is also based on the combined file.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
