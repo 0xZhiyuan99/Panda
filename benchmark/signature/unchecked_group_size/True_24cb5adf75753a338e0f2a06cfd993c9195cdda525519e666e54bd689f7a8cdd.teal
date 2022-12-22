@@ -1,0 +1,388 @@
+#pragma version 8
+txn Lease
+byte "12345678901234567890123456789012"
+!=
+b label_d4208679d46dc1d355a5ed9fa0dc206687de6dfd2d2fc156c88bec95b5d8536d
+label_d4208679d46dc1d355a5ed9fa0dc206687de6dfd2d2fc156c88bec95b5d8536d:
+bnz true_label_5fa0d54741e533069454fca732360996d45e76a6453daa1cd496905da06bcf9d
+b false_label_a25ff35a494cefbf2dfa30e711d9c66c8504a59eeeaa9e4764dd7cd26e4ef709
+true_label_5fa0d54741e533069454fca732360996d45e76a6453daa1cd496905da06bcf9d:
+int 123
+itob
+btoi
+int 123
+==
+b true_label_2e8273ac7241c3603c56bc738912c4f4a08f2d2120377560c03399cd5f4c0f6b
+false_label_a25ff35a494cefbf2dfa30e711d9c66c8504a59eeeaa9e4764dd7cd26e4ef709:
+byte "1"
+ecdsa_pk_decompress Secp256k1
+int 0
+assert
+int 1
+b false_label_46661b80b675619a30912125c271ba3b9d68dbef36a61fb788b29bda883bdc59
+true_label_2e8273ac7241c3603c56bc738912c4f4a08f2d2120377560c03399cd5f4c0f6b:
+bnz true_label_ab485c46ace64097e494cde60c88bab3f40cfd22f2e8a44065b95f1e89eaf43b
+b false_label_b107dd68b4dd4d17463ed34f56bd0c61de799c36b9eea6dfdf86140d7d613b49
+true_label_ab485c46ace64097e494cde60c88bab3f40cfd22f2e8a44065b95f1e89eaf43b:
+arg_3
+arg_3
+==
+b true_label_72a1b7888a4693a1a966783f1cf2634c824fb957aa4247962df70989ee85519d
+false_label_b107dd68b4dd4d17463ed34f56bd0c61de799c36b9eea6dfdf86140d7d613b49:
+int 1 
+return 
+false_label_46661b80b675619a30912125c271ba3b9d68dbef36a61fb788b29bda883bdc59:
+return 
+true_label_72a1b7888a4693a1a966783f1cf2634c824fb957aa4247962df70989ee85519d:
+bnz true_label_b99f88dca81a56c7ecc70a574af116c305c53c86ff00ff44136d4040948ee1a0
+b false_label_dd9439619527a835bff80a5d7745b4fc3711548196061add3d72739c174b8b4e
+true_label_b99f88dca81a56c7ecc70a574af116c305c53c86ff00ff44136d4040948ee1a0:
+gtxn 0 TypeEnum
+int 0
+gtxns TypeEnum
+==
+b true_label_8d6cc293c7709faf76d132a260688a099f2c3f584d2c250acd2999e8afc72b1a
+false_label_dd9439619527a835bff80a5d7745b4fc3711548196061add3d72739c174b8b4e:
+int 1 
+return 
+true_label_8d6cc293c7709faf76d132a260688a099f2c3f584d2c250acd2999e8afc72b1a:
+bnz true_label_dac805f6601cd7de881c15850ecb276522712401c346b39d3a84a5cfb45e746b
+b false_label_18b956a98b044403d4f45151b0c28b29b76102f0a1908bfc21196ec7705aa93b
+true_label_dac805f6601cd7de881c15850ecb276522712401c346b39d3a84a5cfb45e746b:
+byte "aa"
+byte "bb"
+cover 1
+pop
+byte "bb"
+==
+b true_label_7d13952f2159073bd98ebddabd472113d7027cfa26e687159de8d7fcdf799578
+false_label_18b956a98b044403d4f45151b0c28b29b76102f0a1908bfc21196ec7705aa93b:
+int 1 
+return 
+true_label_7d13952f2159073bd98ebddabd472113d7027cfa26e687159de8d7fcdf799578:
+bnz true_label_9115a9edaffd0eceaffb189a6c7a2fd0ba91225306b0f633fc477ed093409dbf
+b false_label_32abbf65a675598f1a73cefa860a0376476a102232c6616f07e60aa7cb7b4fb8
+true_label_9115a9edaffd0eceaffb189a6c7a2fd0ba91225306b0f633fc477ed093409dbf:
+arg 8
+arg 8
+==
+b true_label_7c932f82dceadc633755976d74769671dcfa99a45105310275302989758872b1
+false_label_32abbf65a675598f1a73cefa860a0376476a102232c6616f07e60aa7cb7b4fb8:
+int 1 
+return 
+true_label_7c932f82dceadc633755976d74769671dcfa99a45105310275302989758872b1:
+bnz true_label_3968d388b2ba65800896adc5fbb76850c8c2d68827b09fe5edaa58d0d9170f99
+b false_label_c2e1c0de0bdaebd26f55501d560d1c02ef6c7873f6aa65aba582beb214b8db74
+true_label_3968d388b2ba65800896adc5fbb76850c8c2d68827b09fe5edaa58d0d9170f99:
+int 3
+int 4
+shr
+int 0
+==
+b true_label_6b424f6ad90b572c442b045821246f37b205a09320542df32026425c2be95342
+false_label_c2e1c0de0bdaebd26f55501d560d1c02ef6c7873f6aa65aba582beb214b8db74:
+int 1 
+return 
+true_label_6b424f6ad90b572c442b045821246f37b205a09320542df32026425c2be95342:
+bnz true_label_5157b48cdd106870d74bf063353a355ec0c6ace9a28c63bb62119d13f42ace91
+b false_label_5db7e64734608763bd8cb9b80c7c92422d1fd39ab519add5421bf7333e466a70
+true_label_5157b48cdd106870d74bf063353a355ec0c6ace9a28c63bb62119d13f42ace91:
+txn Note
+txn Note
+==
+b true_label_8fdacba6e7dd1a01143c6357b5bf4a37497136779e2926bceab06f834be827df
+false_label_5db7e64734608763bd8cb9b80c7c92422d1fd39ab519add5421bf7333e466a70:
+int 1 
+return 
+true_label_8fdacba6e7dd1a01143c6357b5bf4a37497136779e2926bceab06f834be827df:
+bnz true_label_3bf7f7e7030a5779df92d483010215b5e80208861d19c1fcc5f8904ca88835dd
+b false_label_ac9217aa228ea3748a633e8ee288eec3aafd4eea421fb8264751eb5ea52f37cd
+true_label_3bf7f7e7030a5779df92d483010215b5e80208861d19c1fcc5f8904ca88835dd:
+gtxn 0 TypeEnum
+gtxn 0 TypeEnum
+==
+b true_label_bcd97c93f8e21fdf75d9e61f24f38765734e1325db4f92566241c590cda759ab
+false_label_ac9217aa228ea3748a633e8ee288eec3aafd4eea421fb8264751eb5ea52f37cd:
+int 1 
+return 
+true_label_bcd97c93f8e21fdf75d9e61f24f38765734e1325db4f92566241c590cda759ab:
+bnz true_label_0b1a436cfe2a84439c92e6e31628958c645228fdff947b603f93cc25d20a45fa
+b false_label_646a88b0aad618908bbc01707e66ae71f6f84e393dec811fe02b8711b6aa95d4
+true_label_0b1a436cfe2a84439c92e6e31628958c645228fdff947b603f93cc25d20a45fa:
+byte "1234567890"
+substring 5 10
+byte "67890"
+==
+b true_label_04fc9f01851c90668364f71a7f9ee80828b9bbd0b9655eb60d6e0f5373857810
+false_label_646a88b0aad618908bbc01707e66ae71f6f84e393dec811fe02b8711b6aa95d4:
+int 1 
+return 
+true_label_04fc9f01851c90668364f71a7f9ee80828b9bbd0b9655eb60d6e0f5373857810:
+bnz true_label_3fcf40e19fd3fb98accafe12ba48e8145667bb85901b9b57fa308ace66ef91a5
+b false_label_a94ecbcf2cffec7ff1e400d5e5d75c65049c27bf038011d0dade5677792ba88f
+true_label_3fcf40e19fd3fb98accafe12ba48e8145667bb85901b9b57fa308ace66ef91a5:
+int 2195919
+int 44
+getbit
+int 0
+==
+b true_label_7e4b19015523226522c417b87bd03340c078cbe51a0289332de63253ce39ad93
+false_label_a94ecbcf2cffec7ff1e400d5e5d75c65049c27bf038011d0dade5677792ba88f:
+int 1 
+return 
+true_label_7e4b19015523226522c417b87bd03340c078cbe51a0289332de63253ce39ad93:
+bnz true_label_fdb0de95ec41bef49c38a682a3f8bddad9b3bab15ef6ae3d21bf42b29b943463
+b false_label_04d34ca19ff7bf6768ad147ca785ee2fac167a7e2da2f370db2beebcbb2a7033
+true_label_fdb0de95ec41bef49c38a682a3f8bddad9b3bab15ef6ae3d21bf42b29b943463:
+global GroupSize
+int 16
+==
+assert
+gtxn 2 CloseRemainderTo
+global ZeroAddress
+==
+assert
+gtxn 2 AssetCloseTo
+global ZeroAddress
+==
+assert
+gtxn 2 RekeyTo
+global ZeroAddress
+==
+assert
+gtxn 2 Fee
+int 1000
+==
+assert
+gtxn 0 CloseRemainderTo
+global ZeroAddress
+==
+assert
+gtxn 0 AssetCloseTo
+global ZeroAddress
+==
+assert
+gtxn 0 RekeyTo
+global ZeroAddress
+==
+assert
+gtxn 0 Fee
+int 1000
+==
+assert
+gtxn 1 CloseRemainderTo
+global ZeroAddress
+==
+assert
+gtxn 1 AssetCloseTo
+global ZeroAddress
+==
+assert
+gtxn 1 RekeyTo
+global ZeroAddress
+==
+assert
+gtxn 1 Fee
+int 1000
+==
+assert
+gtxn 7 CloseRemainderTo
+global ZeroAddress
+==
+assert
+gtxn 7 AssetCloseTo
+global ZeroAddress
+==
+assert
+gtxn 7 RekeyTo
+global ZeroAddress
+==
+assert
+gtxn 7 Fee
+int 1000
+==
+assert
+gtxn 11 CloseRemainderTo
+global ZeroAddress
+==
+assert
+gtxn 11 AssetCloseTo
+global ZeroAddress
+==
+assert
+gtxn 11 RekeyTo
+global ZeroAddress
+==
+assert
+gtxn 11 Fee
+int 1000
+==
+assert
+gtxn 8 CloseRemainderTo
+global ZeroAddress
+==
+assert
+gtxn 8 AssetCloseTo
+global ZeroAddress
+==
+assert
+gtxn 8 RekeyTo
+global ZeroAddress
+==
+assert
+gtxn 8 Fee
+int 1000
+==
+assert
+gtxn 5 CloseRemainderTo
+global ZeroAddress
+==
+assert
+gtxn 5 AssetCloseTo
+global ZeroAddress
+==
+assert
+gtxn 5 RekeyTo
+global ZeroAddress
+==
+assert
+gtxn 5 Fee
+int 1000
+==
+assert
+gtxn 10 CloseRemainderTo
+global ZeroAddress
+==
+assert
+gtxn 10 AssetCloseTo
+global ZeroAddress
+==
+assert
+gtxn 10 RekeyTo
+global ZeroAddress
+==
+assert
+gtxn 10 Fee
+int 1000
+==
+assert
+gtxn 12 CloseRemainderTo
+global ZeroAddress
+==
+assert
+gtxn 12 AssetCloseTo
+global ZeroAddress
+==
+assert
+gtxn 12 RekeyTo
+global ZeroAddress
+==
+assert
+gtxn 12 Fee
+int 1000
+==
+assert
+gtxn 4 CloseRemainderTo
+global ZeroAddress
+==
+assert
+gtxn 4 AssetCloseTo
+global ZeroAddress
+==
+assert
+gtxn 4 RekeyTo
+global ZeroAddress
+==
+assert
+gtxn 4 Fee
+int 1000
+==
+assert
+gtxn 9 CloseRemainderTo
+global ZeroAddress
+==
+assert
+gtxn 9 AssetCloseTo
+global ZeroAddress
+==
+assert
+gtxn 9 RekeyTo
+global ZeroAddress
+==
+assert
+gtxn 9 Fee
+int 1000
+==
+assert
+gtxn 3 CloseRemainderTo
+global ZeroAddress
+==
+assert
+gtxn 3 AssetCloseTo
+global ZeroAddress
+==
+assert
+gtxn 3 RekeyTo
+global ZeroAddress
+==
+assert
+gtxn 3 Fee
+int 1000
+==
+assert
+gtxn 13 CloseRemainderTo
+global ZeroAddress
+==
+assert
+gtxn 13 AssetCloseTo
+global ZeroAddress
+==
+assert
+gtxn 13 RekeyTo
+global ZeroAddress
+==
+assert
+gtxn 13 Fee
+int 1000
+==
+assert
+gtxn 6 CloseRemainderTo
+global ZeroAddress
+==
+assert
+gtxn 6 AssetCloseTo
+global ZeroAddress
+==
+assert
+gtxn 6 RekeyTo
+global ZeroAddress
+==
+assert
+gtxn 6 Fee
+int 1000
+==
+assert
+gtxn 14 CloseRemainderTo
+global ZeroAddress
+==
+assert
+gtxn 14 AssetCloseTo
+global ZeroAddress
+==
+assert
+gtxn 14 RekeyTo
+global ZeroAddress
+==
+assert
+gtxn 14 Fee
+int 1000
+==
+assert
+int 16
+return
+b true_label_2ae1f5c344096dd1d054100e6f2c940521ac2de0ece9b6792c4738abf2f12f17
+false_label_04d34ca19ff7bf6768ad147ca785ee2fac167a7e2da2f370db2beebcbb2a7033:
+int 1 
+return 
+true_label_2ae1f5c344096dd1d054100e6f2c940521ac2de0ece9b6792c4738abf2f12f17:
+return 
