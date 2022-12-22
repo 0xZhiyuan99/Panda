@@ -42,6 +42,9 @@ def arbitrary_delete_vulnerability(configuration):
         return False
 
 def unchecked_group_size_vulnerability(configuration):
+    if configuration.symbolic_hash_variable_used == True:
+        return False
+    
     new_constraints = []
 
     # The transactions and state changes can be reverted
@@ -60,6 +63,9 @@ def unchecked_group_size_vulnerability(configuration):
     return False
 
 def force_clear_state_vulnerability(configuration):
+    if configuration.symbolic_hash_variable_used == True:
+        return False
+
     new_constraints = []
     if configuration.opcode_record["itxn_submit"] == True \
         or configuration.opcode_record["app_global_put"] == True \
@@ -80,6 +86,9 @@ def force_clear_state_vulnerability(configuration):
 
 
 def unchecked_payment_receiver_vulnerability(configuration):
+    if configuration.symbolic_hash_variable_used == True:
+        return False
+
     if configuration.opcode_record["app_global_put"] == True \
          or configuration.opcode_record["app_local_put"] == True:
         gtxn_list = list(set(configuration.opcode_record["gtxn_index"]))
@@ -112,6 +121,9 @@ def unchecked_payment_receiver_vulnerability(configuration):
 
 
 def unchecked_asset_receiver_vulnerability(configuration):
+    if configuration.symbolic_hash_variable_used == True:
+        return False
+
     if configuration.opcode_record["app_global_put"] == True \
          or configuration.opcode_record["app_local_put"] == True:
         gtxn_list = list(set(configuration.opcode_record["gtxn_index"]))
@@ -144,6 +156,9 @@ def unchecked_asset_receiver_vulnerability(configuration):
     return False
 
 def time_stamp_dependeceny_vulnerability(configuration):
+    if configuration.symbolic_hash_variable_used == True:
+        return False
+
     new_constraints = []
     if configuration.opcode_record["timestamp"] == True:
         new_constraints.append(z3.Select(memory.gtxn_ApplicationID, z3.BitVec("GroupIndex", 64)) != 0)
@@ -158,6 +173,9 @@ def time_stamp_dependeceny_vulnerability(configuration):
 
 
 def symbolic_inner_txn_fee_vulnerability(configuration):
+    if configuration.symbolic_hash_variable_used == True:
+        return False
+        
     if configuration.symbolic_inner_txn_fee == True:
         return True
     else:
