@@ -19,6 +19,7 @@ vulnerable_asset_duplicate_record = []
 def init_registry_list():
     global registry_list
     registry_list = [
+        ("smart signature", registry.signature_entry.smart_signature_arbitrary_spend_vulnerability, "\033[1;31;47m[High]   Found a smart signature arbitrary spend vulnerability"),
         ("smart signature", registry.signature_entry.unchecked_transaction_fee_in_lsig, "\033[1;31;47m[High]   Found an unchecked transaction fee vulnerability"),
         ("smart signature", registry.signature_entry.unchecked_RekeyTo_in_lsig, "\033[1;31;47m[High]   Found unchecked rekey-to parameter"),
         ("smart signature", registry.signature_entry.unchecked_CloseRemainderTo_in_lsig, "\033[1;31;47m[High]   Found unchecked close-remainder-to parameter"),
