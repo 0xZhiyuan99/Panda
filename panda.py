@@ -66,7 +66,7 @@ def main():
     parser.add_argument("-ls", "--load-state", action="store_true", help="Load the global state of the validator from the blockchain", dest="load_state")
     parser.add_argument("-bp", "--bypass-validator", action="store_true", help="Bypass the validator if there is no constraint on OnCompletion", dest="bypass_validator")
 
-    parser.add_argument("-v", "--version", action="version", version="Panda version 1.0.0")
+    parser.add_argument("-v", "--version", action="version", version="Panda version 1.0.1")
     parser.add_argument("-db", "--debug", action="store_true", help="Display debug information")
     parser.add_argument("-sl", "--silent", action="store_true", help="Do not display any information")
     parser.add_argument("-dl", "--depth-limit", type=int, help="Maximum configuration stack depth for symbolic execution", dest="block_search_depth")
