@@ -6,6 +6,7 @@ import opcodes
 import handler.v2
 import memory
 from basic_class import ConfigurationError
+import util
 
 show_clear_state_message = False
 
@@ -135,11 +136,14 @@ def symbolic_execute_block(configuration):
             # then stop execution immediately rather than jump to the code in the validator
             if end_instruction["dest_label"] == "app_label":
                 if configuration.path_include_app == False:
+                    # Push the "flag" back to the stack to make the stack balance
+                    configuration.stack_push( util.Uint(flag) ) 
                     handler.v2.return_handle(configuration, None)
                     # Reach end block
                     leave_block(current_block)
                     return
                 elif setting.BYPASS_VALIDATOR == True and clear_state_constraint(configuration, cond):
+                    configuration.stack_push( util.Uint(flag) )
                     handler.v2.return_handle(configuration, None)
                     leave_block(current_block)
                     return
