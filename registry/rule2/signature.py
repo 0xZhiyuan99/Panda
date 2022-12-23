@@ -159,3 +159,51 @@ def unchecked_AssetCloseTo_in_lsig(configuration):
                     return True
         return False
 
+
+def smart_signature_arbitrary_spend_vulnerability(configuration):
+    if configuration.symbolic_hash_variable_used == True:
+        return False
+
+    if configuration.opcode_record["app_local_get"] == True:
+        return False
+    
+    if configuration.app_area == True:
+        index_string = runtime.get_group_index_string(configuration)
+        if is_constrained_var("gtxn_Sender[{}]".format(index_string)) == True:
+            return False
+    
+    current_constraint = [
+            z3.Select(memory.gtxn_Sender, z3.BitVec("GroupIndex", 64)) == z3.StringVal( runtime.lsig_address ),
+            z3.Select(memory.gtxn_AssetSender, z3.BitVec("GroupIndex", 64)) == z3.StringVal( runtime.lsig_address ),
+            z3.Select(memory.gtxn_Fee, z3.BitVec("GroupIndex", 64)) >= z3.BitVecVal( 1000, 64 )
+    ]
+    gtxn_index_list = list(set(configuration.opcode_record["gtxn_index"]))
+    if len(gtxn_index_list) == 0:
+        if runtime.solver.satisfy(current_constraint) == z3.sat:
+            print("\033[1;32;47mSmart signature arbitrary spend index: GroupIndex\033[0m")
+            return True
+
+    current_constraint = [
+            z3.Select(memory.gtxn_Amount, z3.BitVec("GroupIndex", 64)) > z3.BitVecVal( 100000 * 1000000, 64 )
+    ]
+    if runtime.solver.satisfy(current_constraint) == z3.sat:
+        return False
+
+    for index in gtxn_index_list:
+        current_constraint = [
+            z3.Select(memory.gtxn_Amount, index) > z3.BitVecVal( 100000 * 1000000, 64 )
+        ]
+        if runtime.solver.satisfy(current_constraint) == z3.sat:
+            return False
+    
+    for index in gtxn_index_list:
+        current_constraint = [
+            z3.Select(memory.gtxn_Sender, index) == z3.StringVal( runtime.lsig_address ),
+            z3.Select(memory.gtxn_AssetSender, index) == z3.StringVal( runtime.lsig_address ),
+            z3.Select(memory.gtxn_Fee, index) >= z3.BitVecVal( len(gtxn_index_list) * 1000, 64 )
+        ]
+        if runtime.solver.satisfy(current_constraint) == z3.sat and check_txn_sender(gtxn_index_list, index):
+            print("\033[1;32;47mSmart signature arbitrary spend index: {}\033[0m".format(index))
+            return True
+
+    return False

@@ -198,11 +198,17 @@ def smart_signature_arbitrary_spend_vulnerability(configuration):
             print("\033[1;32;47mSmart signature arbitrary spend index: GroupIndex\033[0m")
             return True
 
-    if is_constrained_var("gtxn_Amount[GroupIndex]") == True:
+    current_constraint = [
+            z3.Select(memory.gtxn_Amount, z3.BitVec("GroupIndex", 64)) > z3.BitVecVal( 100000 * 1000000, 64 )
+    ]
+    if runtime.solver.satisfy(current_constraint) == z3.sat:
         return False
-    
+
     for index in gtxn_index_list:
-        if is_constrained_var("gtxn_Amount[{}]".format(index)) == True:
+        current_constraint = [
+            z3.Select(memory.gtxn_Amount, index) > z3.BitVecVal( 100000 * 1000000, 64 )
+        ]
+        if runtime.solver.satisfy(current_constraint) == z3.sat:
             return False
     
     for index in gtxn_index_list:
