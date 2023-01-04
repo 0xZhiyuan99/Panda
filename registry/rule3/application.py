@@ -133,7 +133,24 @@ def time_stamp_dependeceny_vulnerability(configuration):
 
 
 def symbolic_inner_txn_fee_vulnerability(configuration):
+    if configuration.symbolic_hash_variable_used == True:
+        return False
+        
     if configuration.symbolic_inner_txn_fee == True:
         return True
+    else:
+        return False
+
+
+def check_optin(configuration):
+    if configuration.symbolic_hash_variable_used == True:
+        return False
+    
+    new_constraints = []
+    new_constraints.append( z3.Select(memory.gtxn_OnCompletion, z3.BitVec("GroupIndex", 64)) == 1 ) # OptIn
+    new_constraints.append( z3.Select(memory.gtxn_ApplicationID, z3.BitVec("GroupIndex", 64)) != 0 )
+
+    if runtime.solver.satisfy(new_constraints) == z3.sat:
+        return not is_constrained_string(setting.sender_address)
     else:
         return False

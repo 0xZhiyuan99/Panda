@@ -175,7 +175,7 @@ def time_stamp_dependeceny_vulnerability(configuration):
 def symbolic_inner_txn_fee_vulnerability(configuration):
     if configuration.symbolic_hash_variable_used == True:
         return False
-        
+
     if configuration.symbolic_inner_txn_fee == True:
         return True
     else:

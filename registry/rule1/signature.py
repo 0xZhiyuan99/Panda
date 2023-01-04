@@ -118,8 +118,8 @@ def unchecked_CloseRemainderTo_in_lsig(configuration):
                 current_constraint = z3.And(z3.Select(memory.gtxn_TypeEnum, index) == 1,
                                 z3.Select(memory.gtxn_Type, index) == z3.StringVal( "pay" ),
                                 z3.Select(memory.gtxn_Sender, index) == z3.StringVal( runtime.lsig_address ),
-                                z3.BitVec("GroupIndex", 64) == index )
-
+                                z3.BitVec("GroupIndex", 64) == index,
+                            )
                 if runtime.solver.satisfy(current_constraint) == z3.sat and check_txn_sender(gtxn_index_list, index):
                     print("\033[1;32;47mUnchecked CloseRemainderTo index: {}\033[0m".format(index))
                     return True
