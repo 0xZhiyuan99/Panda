@@ -358,7 +358,8 @@ def app_params_get_handle(configuration, instruction):
     elif param0 == "AppCreator":
         dict_result = util.Bytes( z3.StringVal( "\x01" * 32 ) )
     elif param0 == "AppAddress":
-        dict_result = util.Bytes( z3.Select(memory.AppAddress_uint, val1) )
+        dict_result = util.Bytes( z3.StringVal( "\x44" * 32 ) )
+        #dict_result = util.Bytes( z3.Select(memory.AppAddress_uint, val1) )
 
     configuration.stack_push(dict_result)
     configuration.stack_push(util.Uint( z3.BitVecVal( 1, 64 ))) # Always exist
